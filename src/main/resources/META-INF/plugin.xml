@@ -29,4 +29,10 @@
     <extensions defaultExtensionNs="com.intellij">
 
     </extensions>
+
+    <actions>
+        <action class="com.github.allepilli.odoodevelopmentplugin.actions.NewXmlFileAction">
+            <add-to-group group-id="NewGroup" anchor="last"/>
+        </action>
+    </actions>
 </idea-plugin>
