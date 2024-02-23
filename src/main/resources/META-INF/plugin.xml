@@ -27,12 +27,22 @@
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
-
+        <fileTemplateGroup
+                implementation="com.github.allepilli.odoodevelopmentplugin.templates.OdooFileTemplatesGroupFactory"
+                id="com.github.allepilli.odoodevelopmentplugin.templates.OdooFileTemplatesGroupFactory"/>
     </extensions>
 
-    <actions>
-        <action class="com.github.allepilli.odoodevelopmentplugin.actions.NewXmlFileAction">
+    <actions resource-bundle="messages.OdooActionsBundle">
+        <action class="com.github.allepilli.odoodevelopmentplugin.actions.NewOdooManifestFileAction"
+                id="NewOdooManifestFile"
+                text="Manifest File"
+                description="Creates a new __manifest__.py file"
+                icon="com.github.allepilli.odoodevelopmentplugin.OdooIcons.odoo">
             <add-to-group group-id="NewGroup" anchor="last"/>
+        </action>
+        <action class="com.github.allepilli.odoodevelopmentplugin.actions.NewXmlFileAction"
+                id="NewXmlFile">
+            <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewOdooManifestFile"/>
         </action>
     </actions>
 </idea-plugin>

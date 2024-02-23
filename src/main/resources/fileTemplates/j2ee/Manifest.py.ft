@@ -1,0 +1,18 @@
+{
+    'name': '${MODULE_NAME}',
+    'version': '${MODULE_VERSION}',
+    'category': '${MODULE_CATEGORY}',
+    'description': """
+    ${MODULE_DESCRIPTION}
+    """,
+    'depends': ['base'],
+    # data files always loaded at installation
+    'data': [
+
+    ],
+    # data files containing optionally loaded demonstration data
+    'demo': [
+
+    ],
+    'license': "${MODULE_LICENSE}"
+}
