@@ -14,10 +14,10 @@ repositories {
 // Configure Gradle IntelliJ Plugin
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellij {
-    version.set("2023.1.5")
-    type.set("IC") // Target IDE Platform
+    version.set("2023.3.2")
+    type.set("PC") // Target Pycharm Community Edition
 
-    plugins.set(listOf(/* Plugin Dependencies */))
+    plugins.set(listOf("PythonCore", "PsiViewer:233.2"))
 }
 
 tasks {
@@ -31,7 +31,7 @@ tasks {
     }
 
     patchPluginXml {
-        sinceBuild.set("231")
+        sinceBuild.set("233")
         untilBuild.set("241.*")
     }
 
@@ -43,5 +43,9 @@ tasks {
 
     publishPlugin {
         token.set(System.getenv("PUBLISH_TOKEN"))
+    }
+
+    runIde {
+        ideDir.set(file("/home/odoo/.local/share/JetBrains/Toolbox/apps/pycharm-community"))
     }
 }
