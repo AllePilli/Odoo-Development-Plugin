@@ -5,10 +5,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.observable.properties.ObservableProperty
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
-import com.intellij.ui.dsl.builder.bindItem
-import com.intellij.ui.dsl.builder.bindText
-import com.intellij.ui.dsl.builder.panel
-import com.intellij.ui.dsl.builder.whenItemSelectedFromUi
+import com.intellij.ui.dsl.builder.*
 import com.intellij.ui.dsl.listCellRenderer.textListCellRenderer
 import javax.swing.JComponent
 import javax.swing.ListCellRenderer
@@ -45,24 +42,34 @@ class ManifestFormDialog(project: Project, title: String = StringsBundle.message
 
     override fun createCenterPanel(): JComponent = panel {
         row(StringsBundle.message("dialog.ManifestFormDialog.label.module.name")) {
+            resizableRow()
             textField().bindText(this@ManifestFormDialog::name)
+                    .align(AlignX.FILL)
         }
         row(StringsBundle.message("dialog.ManifestFormDialog.label.version")) {
+            resizableRow()
             textField().bindText(this@ManifestFormDialog::version)
                     .applyToComponent { text = "1.0" }
+                    .align(AlignX.FILL)
         }
         row(StringsBundle.message("dialog.ManifestFormDialog.label.category")) {
+            resizableRow()
             textField().bindText(this@ManifestFormDialog::category)
+                    .align(AlignX.FILL)
         }
         row(StringsBundle.message("dialog.ManifestFormDialog.label.description")) {
+            resizableRow()
             textArea().bindText(this@ManifestFormDialog::description)
-                    .applyToComponent { rows = 4 }
+                    .applyToComponent { rows = 5 }
+                    .align(AlignX.FILL)
         }
         row(StringsBundle.message("dialog.ManifestFormDialog.label.license")) {
+            resizableRow()
             val licenseBox = comboBox(items = License.entries, renderer = License.renderer)
                     .bindItem(this@ManifestFormDialog::_license)
 
             textField().bindText(this@ManifestFormDialog::customLicense)
+                    .align(AlignX.FILL)
                     .visibleIf(object : ObservableProperty<Boolean> {
                         override fun get(): Boolean = _license == License.OTHER
                         override fun afterChange(parentDisposable: Disposable?, listener: (Boolean) -> Unit) {
