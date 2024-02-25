@@ -30,6 +30,12 @@
         <fileTemplateGroup
                 implementation="com.github.allepilli.odoodevelopmentplugin.templates.OdooFileTemplatesGroupFactory"
                 id="com.github.allepilli.odoodevelopmentplugin.templates.OdooFileTemplatesGroupFactory"/>
+
+        <fileBasedIndex implementation="com.github.allepilli.odoodevelopmentplugin.indexes.model_index.OdooModelIndex"/>
+
+        <psi.referenceContributor id="com.github.allepilli.odoodevelopmentplugin.references.xml.model_attribute.OdooDataFileModelAttributeReferenceContributor"
+                                  implementation="com.github.allepilli.odoodevelopmentplugin.references.xml.model_attribute.OdooDataFileModelAttributeReferenceContributor"
+                                  language="XML"/>
     </extensions>
 
     <actions resource-bundle="messages.OdooActionsBundle">
