@@ -1,6 +1,5 @@
 package com.github.allepilli.odoodevelopmentplugin.indexes.model_index
 
-import com.github.allepilli.odoodevelopmentplugin.flatMapNotNull
 import com.github.allepilli.odoodevelopmentplugin.getChildrenOfType
 import com.intellij.lang.LighterAST
 import com.intellij.lang.LighterASTNode
@@ -15,82 +14,48 @@ import com.jetbrains.python.psi.PyStringLiteralUtil
 class OdooModelDataIndexer: DataIndexer<String, Void?, FileContent> {
     override fun map(fileContent: FileContent): MutableMap<String, Void?> = (fileContent as? PsiDependentFileContent)
             ?.lighterAST
-            ?.let { it.getAllModelNames(fileContent.contentAsText) + it.getAllModelInheritValues(fileContent.contentAsText) }
+            ?.getAllModelNames(fileContent.contentAsText)
             ?.associateWith { null }
             ?.toMutableMap()
             ?: mutableMapOf()
 }
 
-private fun LighterAST.getAllModelInheritValues(fileContent: CharSequence): List<String> =
-        getChildrenOfType(root, PyElementTypesFacade.INSTANCE.classDeclaration).flatMapNotNull { classNode ->
+private fun LighterAST.getAllModelNames(fileContent: CharSequence): List<String> =
+        getChildrenOfType(root, PyElementTypesFacade.INSTANCE.classDeclaration).mapNotNull { classNode ->
             getChildrenOfType(classNode, PyElementTypes.STATEMENT_LIST).singleOrNull()?.let { stmtList ->
-                buildList {
-                    object : RecursiveLighterASTNodeWalkingVisitor(this@getAllModelInheritValues) {
-                        var inAss = false
-                        var inNameAss = false
-                        var inInheritList = false
+                val statements = getChildrenOfType(stmtList, PyElementTypes.ASSIGNMENT_STATEMENT)
+                val targetNames = statements.map { stmt ->
+                    getChildrenOfType(stmt, PyElementTypes.TARGET_EXPRESSION).firstOrNull()?.let {
+                        buildString { append(fileContent, it.startOffset, it.endOffset) }
+                    }
+                }
 
+                if ("_name" in targetNames) {
+                    val stmt = statements[targetNames.indexOf("_name")]
+                    getChildrenOfType(stmt, PyElementTypes.STRING_LITERAL_EXPRESSION).firstOrNull()?.let {
+                        PyStringLiteralUtil.getStringValue(buildString {
+                            append(fileContent, it.startOffset, it.endOffset)
+                        })
+                    }
+                } else if ("_inherit" in targetNames) {
+                    val stmt = statements[targetNames.indexOf("_inherit")]
+                    var name: String? = null
+
+                    object : RecursiveLighterASTNodeWalkingVisitor(this) {
                         override fun visitNode(element: LighterASTNode) {
-                            if (element.tokenType == PyElementTypes.ASSIGNMENT_STATEMENT) {
-                                if (inInheritList) stopWalking()
-                                else {
-                                    inAss = true
-                                    inNameAss = false
-                                }
-                            } else if (inAss && element.tokenType == PyElementTypes.TARGET_EXPRESSION) {
-                                inNameAss = "_inherit" == buildString {
+                            // The name will be the first occurrence of a String literal in the value of the '_inherit' property
+                            if (element.tokenType == PyElementTypes.STRING_LITERAL_EXPRESSION) {
+                                name = PyStringLiteralUtil.getStringValue(buildString {
                                     append(fileContent, element.startOffset, element.endOffset)
-                                }
-                            } else if (inNameAss && !inInheritList) {
-                                if (element.tokenType == PyElementTypes.STRING_LITERAL_EXPRESSION) {
-                                    add(PyStringLiteralUtil.getStringValue(buildString {
-                                        append(fileContent, element.startOffset, element.endOffset)
-                                    }))
-                                    stopWalking()
-                                } else if (element.tokenType == PyElementTypes.LIST_LITERAL_EXPRESSION) {
-                                    inInheritList = true
-                                }
-                            } else if (inNameAss && element.tokenType == PyElementTypes.STRING_LITERAL_EXPRESSION) {
-                                add(PyStringLiteralUtil.getStringValue(buildString {
-                                    append(fileContent, element.startOffset, element.endOffset)
-                                }))
+                                })
+                                stopWalking()
                             }
 
                             super.visitNode(element)
                         }
-                    }.visitNode(stmtList)
-                }
-            }
-        }
+                    }.visitNode(stmt)
 
-private fun LighterAST.getAllModelNames(fileContent: CharSequence): List<String> =
-        getChildrenOfType(root, PyElementTypesFacade.INSTANCE.classDeclaration).mapNotNull { classNode ->
-            getChildrenOfType(classNode, PyElementTypes.STATEMENT_LIST).singleOrNull()?.let { stmtList ->
-                var name: String? = null
-
-                object: RecursiveLighterASTNodeWalkingVisitor(this) {
-                    var inAssignment = false
-                    var inNameAssignment = false
-
-                    override fun visitNode(element: LighterASTNode) {
-                        if (element.tokenType == PyElementTypes.ASSIGNMENT_STATEMENT) {
-                            inAssignment = true
-                            inNameAssignment = false
-                        } else if (inAssignment && element.tokenType == PyElementTypes.TARGET_EXPRESSION) {
-                            inNameAssignment = "_name" == buildString {
-                                append(fileContent, element.startOffset, element.endOffset)
-                            }
-                        } else if (inNameAssignment && element.tokenType == PyElementTypes.STRING_LITERAL_EXPRESSION) {
-                            name = PyStringLiteralUtil.getStringValue(buildString {
-                                append(fileContent, element.startOffset, element.endOffset)
-                            })
-                            stopWalking()
-                        }
-
-                        super.visitNode(element)
-                    }
-                }.visitNode(stmtList)
-
-                name
+                    name
+                } else null
             }
         }

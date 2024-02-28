@@ -36,6 +36,9 @@
         <psi.referenceContributor id="com.github.allepilli.odoodevelopmentplugin.references.xml.model_attribute.OdooDataFileModelAttributeReferenceContributor"
                                   implementation="com.github.allepilli.odoodevelopmentplugin.references.xml.model_attribute.OdooDataFileModelAttributeReferenceContributor"
                                   language="XML"/>
+        <psi.referenceContributor id="com.github.allepilli.odoodevelopmentplugin.references.python.model_inherit_values.ModelInheritValuesContributor"
+                                  implementation="com.github.allepilli.odoodevelopmentplugin.references.python.model_inherit_values.ModelInheritValuesContributor"
+                                  language="Python"/>
     </extensions>
 
     <actions resource-bundle="messages.OdooActionsBundle">
