@@ -26,7 +26,7 @@ class OdooModelIndex: ScalarIndexExtension<String>() {
 
     override fun getName(): ID<String, Void> = NAME
     override fun getKeyDescriptor(): KeyDescriptor<String> = EnumeratorStringDescriptor.INSTANCE
-    override fun getVersion(): Int = 0
+    override fun getVersion(): Int = 1
     override fun getInputFilter(): FileBasedIndex.InputFilter =
             object: DefaultFileTypeSpecificInputFilter(PythonFileType.INSTANCE) {
                 override fun acceptInput(file: VirtualFile): Boolean {
@@ -44,6 +44,15 @@ class OdooModelIndex: ScalarIndexExtension<String>() {
 
 
 object OdooModelIndexUtil {
+    fun getAllModelNames(project: Project): List<String> =
+            ReadAction.compute<List<String>, RuntimeException> {
+                try {
+                    FileBasedIndex.getInstance().getAllKeys(NAME, project).toList()
+                } catch (e: IndexNotReadyException) {
+                    emptyList()
+                }
+            }
+
     fun findModelsByName(
             project: Project,
             name: String,
@@ -69,9 +78,10 @@ object OdooModelIndexUtil {
                     matches = pyClass.findClassAttribute("_inherit", true, null)?.findAssignedValue()?.let {
                         when (it) {
                             is PyStringLiteralExpression -> name == it.stringValue
-                            is PyListLiteralExpression -> name in it.elements
+                            is PyListLiteralExpression -> name == it.elements
                                     .filterIsInstance<PyStringLiteralExpression>()
-                                    .map { it.stringValue }
+                                    .firstOrNull()
+                                    ?.stringValue
                             else -> false
                         }
                     } ?: false
