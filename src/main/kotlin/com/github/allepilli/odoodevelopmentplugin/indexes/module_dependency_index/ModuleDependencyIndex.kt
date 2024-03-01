@@ -23,7 +23,7 @@ class ModuleDependencyIndex: FileBasedIndexExtension<String, Set<String>>() {
     override fun getValueExternalizer(): DataExternalizer<Set<String>> = ModuleDependencyIndexValueExternalizer()
     override fun getInputFilter(): FileBasedIndex.InputFilter = object : DefaultFileTypeSpecificInputFilter(PythonFileType.INSTANCE) {
         override fun acceptInput(file: VirtualFile): Boolean =
-                file.nameWithoutExtension == Constants.MANIFEST_FILE_NAME //&& file.parent.name == "l10n_ke"
+                file.nameWithoutExtension == Constants.MANIFEST_FILE_NAME
     }
     override fun dependsOnFileContent(): Boolean = true
     override fun getVersion(): Int = 1
