@@ -1,6 +1,9 @@
 package com.github.allepilli.odoodevelopmentplugin.indexes.model_index
 
+import com.github.allepilli.odoodevelopmentplugin.findModule
 import com.github.allepilli.odoodevelopmentplugin.flatMapNotNull
+import com.github.allepilli.odoodevelopmentplugin.getAllFiles
+import com.github.allepilli.odoodevelopmentplugin.indexes.module_dependency_index.ModuleDependencyIndexUtil
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
@@ -44,6 +47,15 @@ class OdooModelIndex: ScalarIndexExtension<String>() {
 
 
 object OdooModelIndexUtil {
+    fun getModuleDependencyScope(project: Project, moduleDirectory: VirtualFile) = if (moduleDirectory.isDirectory) {
+        val files = ModuleDependencyIndexUtil.findAllDependencies(project, moduleDirectory.name)
+                .flatMapNotNull { dependencyName ->
+                    findModule(dependencyName, project)?.getAllFiles(PythonFileType.INSTANCE)
+                }
+
+        GlobalSearchScope.filesScope(project, files)
+    } else throw IllegalArgumentException("VirtualFile should be a directory, got $moduleDirectory")
+
     fun getAllModelNames(project: Project): List<String> =
             ReadAction.compute<List<String>, RuntimeException> {
                 try {
@@ -56,11 +68,15 @@ object OdooModelIndexUtil {
     fun findModelsByName(
             project: Project,
             name: String,
+            moduleRoot: VirtualFile? = null,
             scope: GlobalSearchScope = ProjectScope.getAllScope(project),
     ): List<PyClass> = ReadAction.compute<List<PyClass>, RuntimeException>(ThrowableComputable {
+        val completeScope = GlobalSearchScope.projectScope(project).intersectWith(scope).apply {
+            if (moduleRoot != null) intersectWith(getModuleDependencyScope(project, moduleRoot))
+        }
+
         val files = try {
-            FileBasedIndex.getInstance()
-                    .getContainingFiles(NAME, name, GlobalSearchScope.projectScope(project).intersectWith(scope))
+            FileBasedIndex.getInstance().getContainingFiles(NAME, name, completeScope)
         } catch (e: IndexNotReadyException) {
             emptyList()
         }

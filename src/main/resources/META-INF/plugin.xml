@@ -32,6 +32,7 @@
                 id="com.github.allepilli.odoodevelopmentplugin.templates.OdooFileTemplatesGroupFactory"/>
 
         <fileBasedIndex implementation="com.github.allepilli.odoodevelopmentplugin.indexes.model_index.OdooModelIndex"/>
+        <fileBasedIndex implementation="com.github.allepilli.odoodevelopmentplugin.indexes.module_dependency_index.ModuleDependencyIndex"/>
 
         <psi.referenceContributor id="com.github.allepilli.odoodevelopmentplugin.references.xml.model_attribute.OdooDataFileModelAttributeReferenceContributor"
                                   implementation="com.github.allepilli.odoodevelopmentplugin.references.xml.model_attribute.OdooDataFileModelAttributeReferenceContributor"
