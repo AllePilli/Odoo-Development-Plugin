@@ -47,3 +47,4 @@ bin/
 .DS_Store
 
 notes/
+/.idea/codeStyles/codeStyleConfig.xml

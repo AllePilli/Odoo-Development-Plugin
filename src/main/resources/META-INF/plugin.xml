@@ -40,6 +40,8 @@
         <psi.referenceContributor id="com.github.allepilli.odoodevelopmentplugin.references.python.model_inherit_values.ModelInheritValuesContributor"
                                   implementation="com.github.allepilli.odoodevelopmentplugin.references.python.model_inherit_values.ModelInheritValuesContributor"
                                   language="Python"/>
+
+        <configurationType implementation="com.github.allepilli.odoodevelopmentplugin.execution.OdooConfigurationType"/>
     </extensions>
 
     <actions resource-bundle="messages.OdooActionsBundle">
