@@ -8,7 +8,7 @@ import com.intellij.util.indexing.DataIndexer
 import com.intellij.util.indexing.FileContent
 import com.intellij.util.indexing.PsiDependentFileContent
 import com.jetbrains.python.PyElementTypes
-import com.jetbrains.python.PyElementTypesFacade
+import com.jetbrains.python.PyStubElementTypes
 import com.jetbrains.python.psi.PyStringLiteralUtil
 
 class OdooModelDataIndexer: DataIndexer<String, Void?, FileContent> {
@@ -21,11 +21,11 @@ class OdooModelDataIndexer: DataIndexer<String, Void?, FileContent> {
 }
 
 private fun LighterAST.getAllModelNames(fileContent: CharSequence): List<String> =
-        getChildrenOfType(root, PyElementTypesFacade.INSTANCE.classDeclaration).mapNotNull { classNode ->
+        getChildrenOfType(root, PyStubElementTypes.CLASS_DECLARATION).mapNotNull { classNode ->
             getChildrenOfType(classNode, PyElementTypes.STATEMENT_LIST).singleOrNull()?.let { stmtList ->
                 val statements = getChildrenOfType(stmtList, PyElementTypes.ASSIGNMENT_STATEMENT)
                 val targetNames = statements.map { stmt ->
-                    getChildrenOfType(stmt, PyElementTypes.TARGET_EXPRESSION).firstOrNull()?.let {
+                    getChildrenOfType(stmt, PyStubElementTypes.TARGET_EXPRESSION).firstOrNull()?.let {
                         buildString { append(fileContent, it.startOffset, it.endOffset) }
                     }
                 }
