@@ -12,7 +12,11 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.ProjectScope
+import com.intellij.util.Processor
 import com.intellij.util.indexing.*
+import com.intellij.util.indexing.FileBasedIndex.ValueProcessor
+import com.intellij.util.io.DataExternalizer
+import com.intellij.util.io.DataInputOutputUtil
 import com.intellij.util.io.EnumeratorStringDescriptor
 import com.intellij.util.io.KeyDescriptor
 import com.jetbrains.python.PythonFileType
@@ -20,16 +24,23 @@ import com.jetbrains.python.psi.PyClass
 import com.jetbrains.python.psi.PyFile
 import com.jetbrains.python.psi.PyListLiteralExpression
 import com.jetbrains.python.psi.PyStringLiteralExpression
+import java.io.DataInput
+import java.io.DataOutput
 import java.io.File
 
-private val NAME: ID<String, Void> = ID.create("com.github.allepilli.odoodevelopmentplugin.indexes.model_index.OdooModelIndex")
+class OdooModelNameIndex: FileBasedIndexExtension<String, Int>() {
+    private val indexer = OdooModelNameIndexer()
 
-class OdooModelIndex: ScalarIndexExtension<String>() {
-    private val odooModelDataIndexer = OdooModelDataIndexer()
-
-    override fun getName(): ID<String, Void> = NAME
-    override fun getKeyDescriptor(): KeyDescriptor<String> = EnumeratorStringDescriptor.INSTANCE
+    override fun getName(): ID<String, Int> = OdooModelNameIndexUtil.NAME
+    override fun dependsOnFileContent(): Boolean = true
     override fun getVersion(): Int = 1
+    override fun getIndexer(): DataIndexer<String, Int, FileContent> = indexer
+    override fun getKeyDescriptor(): KeyDescriptor<String> = EnumeratorStringDescriptor.INSTANCE
+    override fun getValueExternalizer(): DataExternalizer<Int> = object: DataExternalizer<Int> {
+        override fun save(out: DataOutput, value: Int) = DataInputOutputUtil.writeINT(out, value)
+        override fun read(input: DataInput): Int = DataInputOutputUtil.readINT(input)
+    }
+
     override fun getInputFilter(): FileBasedIndex.InputFilter =
             object: DefaultFileTypeSpecificInputFilter(PythonFileType.INSTANCE) {
                 override fun acceptInput(file: VirtualFile): Boolean {
@@ -40,13 +51,17 @@ class OdooModelIndex: ScalarIndexExtension<String>() {
                             !file.nameWithoutExtension.startsWith("__")
                 }
             }
-
-    override fun dependsOnFileContent(): Boolean = true
-    override fun getIndexer(): DataIndexer<String, Void?, FileContent> = odooModelDataIndexer
 }
 
+object OdooModelNameIndexUtil {
+    val NAME = ID.create<String, Int>("OdooModelNameIndex")
 
-object OdooModelIndexUtil {
+    fun processAllNames(processor: Processor<in String>, scope: GlobalSearchScope, filter: IdFilter?) =
+            FileBasedIndex.getInstance().processAllKeys(NAME, processor, scope, filter)
+
+    fun processOffsets(name: String, processor: ValueProcessor<Int>, scope: GlobalSearchScope, inFile: VirtualFile? = null, filter: IdFilter? = null) =
+            FileBasedIndex.getInstance().processValues(NAME, name, inFile, processor, scope, filter)
+
     fun getModuleDependencyScope(project: Project, moduleDirectory: VirtualFile) = if (moduleDirectory.isDirectory) {
         val files = ModuleDependencyIndexUtil.findAllDependencies(project, moduleDirectory.name)
                 .flatMapNotNull { dependencyName ->
@@ -56,14 +71,13 @@ object OdooModelIndexUtil {
         GlobalSearchScope.filesScope(project, files)
     } else throw IllegalArgumentException("VirtualFile should be a directory, got $moduleDirectory")
 
-    fun getAllModelNames(project: Project): List<String> =
-            ReadAction.compute<List<String>, RuntimeException> {
-                try {
-                    FileBasedIndex.getInstance().getAllKeys(NAME, project).toList()
-                } catch (e: IndexNotReadyException) {
-                    emptyList()
-                }
-            }
+    fun getAllModelNames(project: Project): List<String> = ReadAction.compute<List<String>, RuntimeException> {
+        try {
+            FileBasedIndex.getInstance().getAllKeys(NAME, project).toList()
+        } catch (e: IndexNotReadyException) {
+            emptyList()
+        }
+    }
 
     fun findModelsByName(
             project: Project,
@@ -82,7 +96,6 @@ object OdooModelIndexUtil {
         }
 
         if (files.isEmpty()) return@ThrowableComputable emptyList<PyClass>()
-
         val psiManager = PsiManager.getInstance(project)
 
         files.filter { it.isValid }.flatMapNotNull { virtualFile ->

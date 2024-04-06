@@ -3,7 +3,7 @@ package com.github.allepilli.odoodevelopmentplugin.references
 import com.github.allepilli.odoodevelopmentplugin.OdooIcons
 import com.github.allepilli.odoodevelopmentplugin.buildArray
 import com.github.allepilli.odoodevelopmentplugin.getContainingModule
-import com.github.allepilli.odoodevelopmentplugin.indexes.model_index.OdooModelIndexUtil
+import com.github.allepilli.odoodevelopmentplugin.indexes.model_index.OdooModelNameIndexUtil
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.*
@@ -16,13 +16,13 @@ class ModelNameReference(psiElement: PsiElement, rangeInElement: TextRange)
         val name = buildString {
             append(element.text, rangeInElement.startOffset, rangeInElement.endOffset)
         }
-        addAll(OdooModelIndexUtil.findModelsByName(element.project, name, moduleRoot = module)
+        addAll(OdooModelNameIndexUtil.findModelsByName(element.project, name, moduleRoot = module)
                 .map(::PsiElementResolveResult))
     }
 
     override fun getVariants(): Array<Any> {
         val project = element.project
-        val modelNames = OdooModelIndexUtil.getAllModelNames(project)
+        val modelNames = OdooModelNameIndexUtil.getAllModelNames(project)
 
         return modelNames.map {
             LookupElementBuilder.create(it)

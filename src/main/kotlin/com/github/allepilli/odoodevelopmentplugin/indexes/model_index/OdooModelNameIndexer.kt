@@ -11,16 +11,15 @@ import com.jetbrains.python.PyElementTypes
 import com.jetbrains.python.PyStubElementTypes
 import com.jetbrains.python.psi.PyStringLiteralUtil
 
-class OdooModelDataIndexer: DataIndexer<String, Void?, FileContent> {
-    override fun map(fileContent: FileContent): MutableMap<String, Void?> = (fileContent as? PsiDependentFileContent)
+class OdooModelNameIndexer: DataIndexer<String, Int, FileContent> {
+    override fun map(fileContent: FileContent): MutableMap<String, Int> = (fileContent as? PsiDependentFileContent)
             ?.lighterAST
-            ?.getAllModelNames(fileContent.contentAsText)
-            ?.associateWith { null }
+            ?.getAllModelNamesWithLocation(fileContent.contentAsText)
             ?.toMutableMap()
             ?: mutableMapOf()
 }
 
-private fun LighterAST.getAllModelNames(fileContent: CharSequence): List<String> =
+private fun LighterAST.getAllModelNamesWithLocation(fileContent: CharSequence): Map<String, Int> =
         getChildrenOfType(root, PyStubElementTypes.CLASS_DECLARATION).mapNotNull { classNode ->
             getChildrenOfType(classNode, PyElementTypes.STATEMENT_LIST).singleOrNull()?.let { stmtList ->
                 val statements = getChildrenOfType(stmtList, PyElementTypes.ASSIGNMENT_STATEMENT)
@@ -35,11 +34,12 @@ private fun LighterAST.getAllModelNames(fileContent: CharSequence): List<String>
                     getChildrenOfType(stmt, PyElementTypes.STRING_LITERAL_EXPRESSION).firstOrNull()?.let {
                         PyStringLiteralUtil.getStringValue(buildString {
                             append(fileContent, it.startOffset, it.endOffset)
-                        })
+                        }) to it.startOffset
                     }
                 } else if ("_inherit" in targetNames) {
                     val stmt = statements[targetNames.indexOf("_inherit")]
                     var name: String? = null
+                    var offset: Int? = null
 
                     object : RecursiveLighterASTNodeWalkingVisitor(this) {
                         override fun visitNode(element: LighterASTNode) {
@@ -48,6 +48,7 @@ private fun LighterAST.getAllModelNames(fileContent: CharSequence): List<String>
                                 name = PyStringLiteralUtil.getStringValue(buildString {
                                     append(fileContent, element.startOffset, element.endOffset)
                                 })
+                                offset = element.startOffset
                                 stopWalking()
                             }
 
@@ -55,7 +56,7 @@ private fun LighterAST.getAllModelNames(fileContent: CharSequence): List<String>
                         }
                     }.visitNode(stmt)
 
-                    name
+                    if (name != null && offset != null) name!! to offset!! else null
                 } else null
             }
-        }
+        }.toMap()
