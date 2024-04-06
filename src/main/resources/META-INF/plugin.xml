@@ -31,7 +31,7 @@
                 implementation="com.github.allepilli.odoodevelopmentplugin.templates.OdooFileTemplatesGroupFactory"
                 id="com.github.allepilli.odoodevelopmentplugin.templates.OdooFileTemplatesGroupFactory"/>
 
-        <fileBasedIndex implementation="com.github.allepilli.odoodevelopmentplugin.indexes.model_index.OdooModelIndex"/>
+        <fileBasedIndex implementation="com.github.allepilli.odoodevelopmentplugin.indexes.model_index.OdooModelNameIndex"/>
         <fileBasedIndex implementation="com.github.allepilli.odoodevelopmentplugin.indexes.module_dependency_index.ModuleDependencyIndex"/>
 
         <psi.referenceContributor id="com.github.allepilli.odoodevelopmentplugin.references.xml.model_attribute.OdooDataFileModelAttributeReferenceContributor"
@@ -42,6 +42,9 @@
                                   language="Python"/>
 
         <configurationType implementation="com.github.allepilli.odoodevelopmentplugin.execution.OdooConfigurationType"/>
+
+        <searchEverywhereContributor
+                implementation="com.github.allepilli.odoodevelopmentplugin.search_everywhere.models.ModelSEContributorFactory"/>
     </extensions>
 
     <actions resource-bundle="messages.OdooActionsBundle">
