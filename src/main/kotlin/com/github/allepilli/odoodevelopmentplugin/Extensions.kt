@@ -32,8 +32,6 @@ fun PsiFile.getContainingModuleName(): String? {
     return dir.name
 }
 
-fun PsiFile.getContainingModule(): VirtualFile? = getContainingModuleName()?.let { findModule(it, project) }
-
 fun VirtualFile.getAllFiles(fileType: FileType): List<VirtualFile> {
     if (!isDirectory) throw IllegalArgumentException("This function should only be called on directories, not $this")
 

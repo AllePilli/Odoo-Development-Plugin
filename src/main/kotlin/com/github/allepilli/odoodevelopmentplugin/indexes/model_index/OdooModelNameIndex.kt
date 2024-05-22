@@ -62,11 +62,13 @@ object OdooModelNameIndexUtil {
     fun processOffsets(name: String, processor: ValueProcessor<Int>, scope: GlobalSearchScope, inFile: VirtualFile? = null, filter: IdFilter? = null) =
             FileBasedIndex.getInstance().processValues(NAME, name, inFile, processor, scope, filter)
 
-    fun getModuleDependencyScope(project: Project, moduleDirectory: VirtualFile) = if (moduleDirectory.isDirectory) {
-        val files = ModuleDependencyIndexUtil.findAllDependencies(project, moduleDirectory.name)
+    fun getModuleDependencyScope(project: Project, moduleDirectory: VirtualFile, includeModule: Boolean = true) = if (moduleDirectory.isDirectory) {
+        val dependencyFiles = ModuleDependencyIndexUtil.findAllDependencies(project, moduleDirectory.name)
                 .flatMapNotNull { dependencyName ->
                     findModule(dependencyName, project)?.getAllFiles(PythonFileType.INSTANCE)
                 }
+
+        val files = if (includeModule) dependencyFiles + moduleDirectory.getAllFiles(PythonFileType.INSTANCE) else dependencyFiles
 
         GlobalSearchScope.filesScope(project, files)
     } else throw IllegalArgumentException("VirtualFile should be a directory, got $moduleDirectory")
@@ -83,14 +85,13 @@ object OdooModelNameIndexUtil {
             project: Project,
             name: String,
             moduleRoot: VirtualFile? = null,
-            scope: GlobalSearchScope = ProjectScope.getAllScope(project),
+            altScope: GlobalSearchScope = ProjectScope.getAllScope(project),
     ): List<PyClass> = ReadAction.compute<List<PyClass>, RuntimeException>(ThrowableComputable {
-        val completeScope = GlobalSearchScope.projectScope(project).intersectWith(scope).apply {
-            if (moduleRoot != null) intersectWith(getModuleDependencyScope(project, moduleRoot))
-        }
+        val scope = if (moduleRoot != null) getModuleDependencyScope(project, moduleRoot)
+                            else GlobalSearchScope.projectScope(project).intersectWith(altScope)
 
         val files = try {
-            FileBasedIndex.getInstance().getContainingFiles(NAME, name, completeScope)
+            FileBasedIndex.getInstance().getContainingFiles(NAME, name, scope)
         } catch (e: IndexNotReadyException) {
             emptyList()
         }
@@ -111,9 +112,10 @@ object OdooModelNameIndexUtil {
                                     .filterIsInstance<PyStringLiteralExpression>()
                                     .firstOrNull()
                                     ?.stringValue
+
                             else -> false
                         }
-                    } ?: false
+                    } == true
                 }
 
                 matches
