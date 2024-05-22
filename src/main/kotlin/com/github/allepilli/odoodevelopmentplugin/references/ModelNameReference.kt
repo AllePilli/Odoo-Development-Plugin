@@ -12,7 +12,7 @@ class ModelNameReference(psiElement: PsiElement, rangeInElement: TextRange)
     : PsiReferenceBase<PsiElement>(psiElement, rangeInElement), PsiPolyVariantReference {
     override fun resolve(): PsiElement? = multiResolve(false).singleOrNull()?.element
     override fun multiResolve(isCompleteCode: Boolean): Array<ResolveResult> = buildArray {
-        val module = element.containingFile.getContainingModule()
+        val module = getContainingModule(element.containingFile)
         val name = buildString {
             append(element.text, rangeInElement.startOffset, rangeInElement.endOffset)
         }
