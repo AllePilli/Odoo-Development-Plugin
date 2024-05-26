@@ -1,0 +1,126 @@
+package com.github.allepilli.odoodevelopmentplugin.actions
+
+import com.github.allepilli.odoodevelopmentplugin.execution.OdooRunConfiguration
+import com.github.allepilli.odoodevelopmentplugin.execution.OdooRunType
+import com.intellij.execution.RunManager
+import com.intellij.execution.actions.RunConfigurationsComboBoxAction
+import com.intellij.ide.IdeEventQueue
+import com.intellij.ide.ui.laf.darcula.ui.ToolbarComboWidgetUiSizes
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.Toggleable
+import com.intellij.openapi.actionSystem.ex.CustomComponentAction
+import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
+import com.intellij.openapi.actionSystem.impl.Utils
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.serviceIfCreated
+import com.intellij.openapi.observable.util.whenDisposed
+import com.intellij.openapi.project.DumbAware
+import com.intellij.openapi.ui.popup.JBPopup
+import com.intellij.openapi.ui.popup.JBPopupFactory
+import com.intellij.openapi.util.NlsActions
+import com.intellij.ui.components.JBLabel
+import com.intellij.util.ui.JBDimension
+import com.intellij.util.ui.JBEmptyBorder
+import com.intellij.util.ui.JBInsets
+import com.intellij.util.ui.JBUI
+import java.awt.Component
+import java.awt.Insets
+import javax.swing.JComponent
+import javax.swing.JList
+import javax.swing.ListCellRenderer
+import javax.swing.SwingConstants
+
+class RunTypeSelector: ToggleRunTypeAction(OdooRunType.entries.map { it.presentableName }), CustomComponentAction, DumbAware {
+    private var selectedRunConfiguration: OdooRunConfiguration? = null
+
+    override fun onStateSelected(state: String) {
+        selectedRunConfiguration?.runType = OdooRunType.entries.first { it.presentableName == state }
+    }
+
+    override fun update(e: AnActionEvent) {
+        super.update(e)
+
+        val actionManager: ActionManager = ApplicationManager.getApplication().serviceIfCreated<ActionManager>() ?: return
+        val runConfigurationAction = actionManager.getAction("RunConfiguration") as? RunConfigurationsComboBoxAction ?: return
+        runConfigurationAction.update(e)
+
+        e.project?.let { RunManager.getInstanceIfCreated(it) }?.selectedConfiguration?.let { runConfigurationSettings ->
+            val configuration = runConfigurationSettings.configuration
+
+            if (configuration is OdooRunConfiguration) {
+                e.presentation.isVisible = true
+                selectedRunConfiguration = configuration
+                selectedState = configuration.runType.presentableName
+            } else {
+                e.presentation.isVisible = false
+                selectedRunConfiguration = null
+            }
+        }
+    }
+
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+    override fun displayTextInToolbar(): Boolean = true
+    override fun createCustomComponent(presentation: Presentation, place: String): JComponent =
+            object : ActionButtonWithText(this, presentation, place, { JBUI.size(16, JBUI.CurrentTheme.RunWidget.toolbarHeight()) }) {
+                private val marginInsets = JBInsets(0, 10, 0, 6)
+
+                init {
+                    foreground = JBUI.CurrentTheme.RunWidget.FOREGROUND
+                    setHorizontalTextAlignment(SwingConstants.LEFT)
+                }
+
+                override fun getMargins(): Insets = marginInsets
+                override fun iconTextSpace(): Int = ToolbarComboWidgetUiSizes.gapAfterLeftIcons
+                override fun shallPaintDownArrow(): Boolean = true
+                override fun getText(): @NlsActions.ActionText String = selectedState
+            }
+}
+
+abstract class ToggleRunTypeAction(val states: List<String>): ToggleAction() {
+    companion object {
+        private val popupContentBorder = JBEmptyBorder(JBUI.insets(2, 10))
+        private val minimumPopupSize = JBDimension(135, 0)
+        private val listCellRenderer = object : ListCellRenderer<String> {
+            override fun getListCellRendererComponent(list: JList<out String?>?, value: String?, index: Int, isSelected: Boolean, cellHasFocus: Boolean): Component =
+                    JBLabel(value ?: "").apply {
+                        border = JBEmptyBorder(JBUI.insets(0, 5))
+                    }
+        }
+    }
+
+    var selectedState = states.first()
+
+    override fun isSelected(e: AnActionEvent): Boolean = Toggleable.isSelected(e.presentation)
+    override fun setSelected(e: AnActionEvent, state: Boolean) {
+        if (!state) return
+
+        val component = e.inputEvent?.component as? JComponent ?: return
+        val start = IdeEventQueue.getInstance().popupTriggerTime
+        val popup = createPopup(e) ?: return
+
+        Utils.showPopupElapsedMillisIfConfigured(start, popup.content)
+        popup.showUnderneathOf(component)
+    }
+
+    fun createPopup(e: AnActionEvent): JBPopup? = JBPopupFactory.getInstance().createPopupChooserBuilder<String>(states)
+            .setItemChosenCallback { chosenItem ->
+               selectedState = chosenItem
+               onStateSelected(chosenItem)
+            }
+            .setRenderer(listCellRenderer)
+            .setMinSize(minimumPopupSize)
+            .createPopup()
+            .apply {
+                whenDisposed {
+                    Toggleable.setSelected(e.presentation, false)
+                }
+
+                content.border = popupContentBorder
+            }
+
+    abstract fun onStateSelected(state: String)
+}

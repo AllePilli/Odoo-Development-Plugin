@@ -68,5 +68,9 @@
                 id="NewXmlFile">
             <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewOdooManifestFile"/>
         </action>
+        <action class="com.github.allepilli.odoodevelopmentplugin.actions.RunTypeSelector"
+                id="RunTypeSelector">
+            <add-to-group group-id="MainToolbarRight" anchor="first"/>
+        </action>
     </actions>
 </idea-plugin>
