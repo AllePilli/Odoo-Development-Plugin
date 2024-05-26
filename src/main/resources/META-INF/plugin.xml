@@ -46,6 +46,9 @@
         <psi.referenceContributor id="com.github.allepilli.odoodevelopmentplugin.references.python.model_in_comodel_args.ModelInComodelArgsContributor"
                                   implementation="com.github.allepilli.odoodevelopmentplugin.references.python.model_in_comodel_args.ModelInComodelArgsContributor"
                                   language="Python"/>
+        <psi.referenceContributor id="com.github.allepilli.odoodevelopmentplugin.references.python.compute_function.ComputeFunctionContributor"
+                                  implementation="com.github.allepilli.odoodevelopmentplugin.references.python.compute_function.ComputeFunctionContributor"
+                                  language="Python"/>
 
         <configurationType implementation="com.github.allepilli.odoodevelopmentplugin.execution.OdooConfigurationType"/>
 
