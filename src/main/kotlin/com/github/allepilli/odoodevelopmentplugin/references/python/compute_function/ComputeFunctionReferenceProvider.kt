@@ -5,7 +5,6 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReference
 import com.intellij.psi.PsiReferenceProvider
-import com.intellij.psi.util.childrenOfType
 import com.intellij.psi.util.parentOfType
 import com.intellij.util.ProcessingContext
 import com.jetbrains.python.FunctionParameter
@@ -48,10 +47,7 @@ class ComputeFunctionReferenceProvider: PsiReferenceProvider() {
 
         if (parameterExpression != psiElement) return emptyArray()
 
-        val callExpression = argumentList.parent as? PyCallExpression ?: return emptyArray()
-        val referenceExpression = callExpression.childrenOfType<PyReferenceExpression>()
-                .firstOrNull()
-                ?: return emptyArray()
+        val referenceExpression = argumentList.parent.firstChild as? PyReferenceExpression ?: return emptyArray()
 
         if (referenceExpression.name in classes) {
             val functionName = PyStringLiteralUtil.getStringValue(psiElement.text)
