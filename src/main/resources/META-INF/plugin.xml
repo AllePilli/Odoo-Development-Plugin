@@ -72,5 +72,8 @@
                 id="RunTypeSelector">
             <add-to-group group-id="MainToolbarRight" anchor="first"/>
         </action>
+        <action class="com.github.allepilli.odoodevelopmentplugin.actions.OpenDBAction"
+                id="OpenDbAction"
+                icon="com.github.allepilli.odoodevelopmentplugin.OdooIcons.odoo"/>
     </actions>
 </idea-plugin>
