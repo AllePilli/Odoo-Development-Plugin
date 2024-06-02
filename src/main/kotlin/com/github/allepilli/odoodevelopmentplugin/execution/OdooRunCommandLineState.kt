@@ -1,6 +1,11 @@
 package com.github.allepilli.odoodevelopmentplugin.execution
 
+import com.intellij.execution.Executor
+import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.ui.ConsoleView
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.vfs.encoding.EncodingProjectManager
 import com.jetbrains.python.run.PythonCommandLineState
 import com.jetbrains.python.run.PythonExecution
@@ -32,4 +37,10 @@ class OdooRunCommandLineState(private val runConfiguration: OdooRunConfiguration
 
                 charset = EncodingProjectManager.getInstance(runConfiguration.project).defaultCharset
             }
+
+    override fun createActions(console: ConsoleView?, processHandler: ProcessHandler?, executor: Executor?): Array<out AnAction?> {
+        val superActions = super.createActions(console, processHandler, executor)
+        val openDBAction = ActionManager.getInstance().getAction("OpenDBAction") ?: return superActions
+        return superActions + openDBAction
+    }
 }
