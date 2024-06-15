@@ -40,7 +40,7 @@ class OdooRunCommandLineState(private val runConfiguration: OdooRunConfiguration
 
     override fun createActions(console: ConsoleView?, processHandler: ProcessHandler?, executor: Executor?): Array<out AnAction?> {
         val superActions = super.createActions(console, processHandler, executor)
-        val openDBAction = ActionManager.getInstance().getAction("OpenDBAction") ?: return superActions
+        val openDBAction = ActionManager.getInstance().getAction("OpenDbAction") ?: return superActions
         return superActions + openDBAction
     }
 }
