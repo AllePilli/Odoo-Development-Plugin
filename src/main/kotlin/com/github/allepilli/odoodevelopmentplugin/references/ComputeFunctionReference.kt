@@ -1,6 +1,6 @@
 package com.github.allepilli.odoodevelopmentplugin.references
 
-import com.github.allepilli.odoodevelopmentplugin.buildArray
+import com.intellij.codeInsight.lookup.AutoCompletionPolicy
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
@@ -19,10 +19,11 @@ class ComputeFunctionReference(element: PyStringLiteralExpression, rangeInElemen
         return pyClass.findMethodByName(functionName, false, TypeEvalContext.codeAnalysis(element.project, element.containingFile))
     }
 
-    override fun getVariants(): Array<out Any?> = buildArray {
-        val pyClass = element.parentOfType<PyClass>() ?: return@buildArray
-        return pyClass.methods.map { method ->
-            LookupElementBuilder.create(method)
-        }.toTypedArray()
-    }
+    override fun getVariants(): Array<out Any?> = element.parentOfType< PyClass>()
+            ?.methods
+            ?.map { method ->
+                LookupElementBuilder.create(method).withAutoCompletionPolicy(AutoCompletionPolicy.ALWAYS_AUTOCOMPLETE)
+            }
+            ?.toTypedArray()
+            ?: emptyArray()
 }
