@@ -8,6 +8,7 @@ import com.github.allepilli.odoodevelopmentplugin.indexes.module_dependency_inde
 import com.github.allepilli.odoodevelopmentplugin.textcompletion.LazyTextCompletionProvider
 import com.github.allepilli.odoodevelopmentplugin.textcompletion.StringValueDescriptor
 import com.intellij.openapi.options.SettingsEditor
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.TextFieldWithBrowseButton
@@ -21,21 +22,26 @@ import javax.swing.JComponent
 
 
 class OdooRunConfigurationSettingsEditor(project: Project): SettingsEditor<OdooRunConfiguration>() {
+    private val textCompletionProvider = LazyTextCompletionProvider(StringValueDescriptor, mutableListOf(','), true) {
+        ModuleDependencyIndexUtil.getAllModuleNames(project).toMutableSet()
+    }
+
+    init {
+        project.messageBus.connect().subscribe(DumbService.DUMB_MODE, object: DumbService.DumbModeListener {
+            override fun exitDumbMode() {
+                super.exitDumbMode()
+
+                textCompletionProvider.resetValues()
+            }
+        })
+    }
+
     private var _runTypeBox: ComboBox<OdooRunType>? = null
     private var _odooBinPathComponent: TextFieldWithBrowseButton? = null
     private var _dbNameComponent: JBTextField? = null
     private var _addonsPathsComponent: JBTextField? = null
     private var _otherOptionsTextField: ExpandableTextField? = null
-    private var _modulesTextField = TextFieldWithCompletion(
-            project,
-            LazyTextCompletionProvider(StringValueDescriptor, mutableListOf(','), true) {
-                ModuleDependencyIndexUtil.getAllModuleNames(project).toMutableSet()
-            },
-            "",
-            true,
-            true,
-            true
-    )
+    private var _modulesTextField = TextFieldWithCompletion(project, textCompletionProvider, "", true, true, true)
     private val myPanel = panel {
         row("Run Type:") {
             _runTypeBox = comboBox(items = OdooRunType.entries, textListCellRenderer { it?.presentableName })
