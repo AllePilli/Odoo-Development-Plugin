@@ -1,6 +1,6 @@
 package com.github.allepilli.odoodevelopmentplugin.indexes.model_index
 
-import com.github.allepilli.odoodevelopmentplugin.findModule
+import com.github.allepilli.odoodevelopmentplugin.Utils
 import com.github.allepilli.odoodevelopmentplugin.flatMapNotNull
 import com.github.allepilli.odoodevelopmentplugin.getAllFiles
 import com.github.allepilli.odoodevelopmentplugin.indexes.module_dependency_index.ModuleDependencyIndexUtil
@@ -16,7 +16,6 @@ import com.intellij.util.Processor
 import com.intellij.util.indexing.*
 import com.intellij.util.indexing.FileBasedIndex.ValueProcessor
 import com.intellij.util.io.DataExternalizer
-import com.intellij.util.io.DataInputOutputUtil
 import com.intellij.util.io.EnumeratorStringDescriptor
 import com.intellij.util.io.KeyDescriptor
 import com.jetbrains.python.PythonFileType
@@ -24,22 +23,17 @@ import com.jetbrains.python.psi.PyClass
 import com.jetbrains.python.psi.PyFile
 import com.jetbrains.python.psi.PyListLiteralExpression
 import com.jetbrains.python.psi.PyStringLiteralExpression
-import java.io.DataInput
-import java.io.DataOutput
 import java.io.File
 
-class OdooModelNameIndex: FileBasedIndexExtension<String, Int>() {
+class OdooModelNameIndex: FileBasedIndexExtension<String, OdooModelNameIndexItem>() {
     private val indexer = OdooModelNameIndexer()
 
-    override fun getName(): ID<String, Int> = OdooModelNameIndexUtil.NAME
+    override fun getName(): ID<String, OdooModelNameIndexItem> = OdooModelNameIndexUtil.NAME
     override fun dependsOnFileContent(): Boolean = true
-    override fun getVersion(): Int = 1
-    override fun getIndexer(): DataIndexer<String, Int, FileContent> = indexer
+    override fun getVersion(): Int = 2
+    override fun getIndexer(): DataIndexer<String, OdooModelNameIndexItem, FileContent> = indexer
     override fun getKeyDescriptor(): KeyDescriptor<String> = EnumeratorStringDescriptor.INSTANCE
-    override fun getValueExternalizer(): DataExternalizer<Int> = object: DataExternalizer<Int> {
-        override fun save(out: DataOutput, value: Int) = DataInputOutputUtil.writeINT(out, value)
-        override fun read(input: DataInput): Int = DataInputOutputUtil.readINT(input)
-    }
+    override fun getValueExternalizer(): DataExternalizer<OdooModelNameIndexItem> = OdooModelNameIndexItem.dataExternalizer
 
     override fun getInputFilter(): FileBasedIndex.InputFilter =
             object: DefaultFileTypeSpecificInputFilter(PythonFileType.INSTANCE) {
@@ -54,18 +48,21 @@ class OdooModelNameIndex: FileBasedIndexExtension<String, Int>() {
 }
 
 object OdooModelNameIndexUtil {
-    val NAME = ID.create<String, Int>("OdooModelNameIndex")
+    val NAME = ID.create<String, OdooModelNameIndexItem>("OdooModelNameIndex")
 
     fun processAllNames(processor: Processor<in String>, scope: GlobalSearchScope, filter: IdFilter?) =
             FileBasedIndex.getInstance().processAllKeys(NAME, processor, scope, filter)
 
-    fun processOffsets(name: String, processor: ValueProcessor<Int>, scope: GlobalSearchScope, inFile: VirtualFile? = null, filter: IdFilter? = null) =
-            FileBasedIndex.getInstance().processValues(NAME, name, inFile, processor, scope, filter)
+    fun processItems(name: String,
+                     processor: ValueProcessor<OdooModelNameIndexItem>,
+                     scope: GlobalSearchScope,
+                     inFile: VirtualFile? = null,
+                     filter: IdFilter? = null) = FileBasedIndex.getInstance().processValues(NAME, name, inFile, processor, scope, filter)
 
     fun getModuleDependencyScope(project: Project, moduleDirectory: VirtualFile, includeModule: Boolean = true) = if (moduleDirectory.isDirectory) {
         val dependencyFiles = ModuleDependencyIndexUtil.findAllDependencies(project, moduleDirectory.name)
                 .flatMapNotNull { dependencyName ->
-                    findModule(dependencyName, project)?.getAllFiles(PythonFileType.INSTANCE)
+                    Utils.findModule(dependencyName, project)?.getAllFiles(PythonFileType.INSTANCE)
                 }
 
         val files = if (includeModule) dependencyFiles + moduleDirectory.getAllFiles(PythonFileType.INSTANCE) else dependencyFiles
@@ -78,6 +75,40 @@ object OdooModelNameIndexUtil {
             FileBasedIndex.getInstance().getAllKeys(NAME, project).toList()
         } catch (e: IndexNotReadyException) {
             emptyList()
+        }
+    }
+
+    fun getModelInfos(
+            project: Project,
+            modelName: String,
+            moduleRoot: VirtualFile? = null,
+            altScope: GlobalSearchScope = ProjectScope.getAllScope(project),
+    ): List<OdooModelNameIndexItem> = ReadAction.compute<List<OdooModelNameIndexItem>, kotlin.RuntimeException> {
+        val scope = if (moduleRoot != null) getModuleDependencyScope(project, moduleRoot)
+                    else GlobalSearchScope.projectScope(project).intersectWith(altScope)
+
+        try {
+            FileBasedIndex.getInstance().getValues(NAME, modelName, scope)
+        } catch (_: IndexNotReadyException) {
+            emptyList()
+        }
+    }
+
+    fun getModelName(pyClass: PyClass): String? = ReadAction.compute<String, RuntimeException> {
+        try {
+            val map = FileBasedIndex.getInstance()
+                    .getFileData(NAME, pyClass.containingFile.virtualFile, pyClass.project)
+                    .takeIf { it.isNotEmpty() }
+                    ?: return@compute null
+
+            if (map.size == 1) map.keys.first() else {
+                val classRangeInFile = pyClass.textRangeInParent
+                map.firstNotNullOfOrNull { (modelName, item) ->
+                    if (classRangeInFile.contains(item.modelNameOffset)) modelName else null
+                }
+            }
+        } catch (_: IndexNotReadyException) {
+            null
         }
     }
 

@@ -54,6 +54,9 @@
 
         <searchEverywhereContributor
                 implementation="com.github.allepilli.odoodevelopmentplugin.search_everywhere.models.ModelSEContributorFactory"/>
+
+        <codeInsight.lineMarkerProvider language="Python"
+                                        implementationClass="com.github.allepilli.odoodevelopmentplugin.line_markers.override_methods.OverrideMethodLineMarkerProvider"/>
     </extensions>
 
     <actions resource-bundle="messages.OdooActionsBundle">
