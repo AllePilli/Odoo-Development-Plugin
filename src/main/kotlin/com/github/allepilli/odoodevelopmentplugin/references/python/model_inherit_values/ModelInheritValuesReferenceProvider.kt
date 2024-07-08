@@ -11,6 +11,6 @@ import com.jetbrains.python.psi.PyStringLiteralExpression
 class ModelInheritValuesReferenceProvider: PsiReferenceProvider() {
     override fun getReferencesByElement(psiElement: PsiElement, context: ProcessingContext): Array<PsiReference> =
             if (psiElement is PyStringLiteralExpression) arrayOf(
-                    ModelNameReference(psiElement, TextRange.allOf(psiElement.stringValue).shiftRight(1))
+                    ModelNameReference(psiElement, TextRange.allOf(psiElement.stringValue).shiftRight(1), canReferenceContainingClass = false)
             ) else emptyArray()
 }

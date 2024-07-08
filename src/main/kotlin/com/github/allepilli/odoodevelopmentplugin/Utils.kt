@@ -9,6 +9,7 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiFile
 import com.intellij.ui.components.JBTextField
 import com.intellij.util.textCompletion.TextFieldWithCompletion
+import com.jetbrains.python.psi.PyClass
 import kotlin.reflect.KProperty
 
 object Utils {
@@ -45,6 +46,10 @@ object Utils {
             return dir.name
         }
     }
+
+    fun equals(pyClass1: PyClass, pyClass2: PyClass): Boolean =
+            pyClass1.containingFile.virtualFile.path == pyClass2.containingFile.virtualFile.path &&
+                    pyClass1.textOffset == pyClass2.textOffset
 }
 
 inline fun <reified E> buildArray(builderAction: MutableList<E>.() -> Unit): Array<E> = buildList(builderAction).toTypedArray()
