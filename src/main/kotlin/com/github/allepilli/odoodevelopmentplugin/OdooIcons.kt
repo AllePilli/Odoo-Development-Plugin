@@ -11,7 +11,4 @@ object OdooIcons {
 
     @JvmField
     val odoo = getIcon("odoo_icon")
-
-    @JvmField
-    val override = getIcon("override")
 }
