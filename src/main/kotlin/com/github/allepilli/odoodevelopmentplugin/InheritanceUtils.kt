@@ -1,35 +1,38 @@
 package com.github.allepilli.odoodevelopmentplugin
 
+import com.github.allepilli.odoodevelopmentplugin.extensions.addonPaths
 import com.github.allepilli.odoodevelopmentplugin.indexes.model_index.OdooModelNameIndexUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.jetbrains.python.psi.PyClass
-import java.util.logging.Logger
+import com.jetbrains.python.psi.PyFunction
 
 object InheritanceUtils {
-    private val log = Logger.getLogger("com.github.allepilli.odoodevelopmentplugin.InheritanceUtils")
+    fun getParentModels(project: Project, contextModule: VirtualFile, modelName: String, module: String = contextModule.name, addonPaths: List<String>): List<PyClass> {
+        val item = OdooModelNameIndexUtil.getModelInfo(project, modelName, module, addonPaths) ?: return emptyList()
+        val checkedParents = mutableSetOf<String>()
+        var parents = item.parents.map { it.name }.toSet()
 
-    fun hasParent(project: Project, modelName: String, moduleRoot: VirtualFile): Boolean = OdooModelNameIndexUtil
-            .getModelInfos(project, modelName, moduleRoot = moduleRoot)
-            .firstOrNull()
-            ?.let { it.parents.isNotEmpty() } == true
+        do {
+            val diff = if (checkedParents.isEmpty()) {
+                val temp = (parents - checkedParents)
+                checkedParents.addAll(parents)
+                temp
+            } else (parents - checkedParents)
 
-    fun getParentModelNames(project: Project, modelName: String, moduleRoot: VirtualFile): List<String> = OdooModelNameIndexUtil
-            .getModelInfos(project, modelName, moduleRoot = moduleRoot)
-            .firstOrNull()
-            ?.let { it.parents.map { it.first } }
-            ?: run {
-                log.warning("Did not find the parent of $modelName in context of ${moduleRoot.name}")
-                emptyList()
-            }
+            parents = diff.flatMap { parentName ->
+                OdooModelNameIndexUtil.getModelInfos(project, parentName, contextModule).map { it.parents.map { it.name } }
+            }.flatten().toSet()
+            checkedParents.addAll(parents)
+        } while (parents.isNotEmpty())
 
-    /**
-     * @param modelName model name whose parents we want to find
-     * @param moduleRoot the module that this model is part of.
-     * @return all possible direct parents of this model in the context of the [moduleRoot]'s dependencies
-     */
-    fun getParentModels(project: Project, modelName: String, moduleRoot: VirtualFile): List<PyClass> =
-            getParentModelNames(project, modelName, moduleRoot).flatMap { parentModelName ->
-                OdooModelNameIndexUtil.findModelsByName(project, parentModelName, moduleRoot = moduleRoot)
+        return checkedParents.flatMap { parent ->
+            OdooModelNameIndexUtil.findModelsByName(project, parent, contextModule)
+        }
+    }
+
+    fun getAllInheritedMethods(project: Project, modelName: String, contextModule: VirtualFile): List<PyFunction> =
+            getParentModels(project, contextModule, modelName, addonPaths = project.addonPaths).flatMap { parentClass ->
+                parentClass.methods.toList()
             }
 }

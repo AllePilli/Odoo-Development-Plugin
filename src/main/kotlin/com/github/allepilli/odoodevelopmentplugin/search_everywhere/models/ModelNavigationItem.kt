@@ -1,13 +1,13 @@
 package com.github.allepilli.odoodevelopmentplugin.search_everywhere.models
 
 import com.github.allepilli.odoodevelopmentplugin.OdooIcons
-import com.github.allepilli.odoodevelopmentplugin.Utils
+import com.github.allepilli.odoodevelopmentplugin.extensions.addonPaths
+import com.github.allepilli.odoodevelopmentplugin.extensions.getContainingModuleName
 import com.intellij.navigation.ItemPresentation
 import com.intellij.navigation.NavigationItem
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiManager
 import com.intellij.util.indexing.FindSymbolParameters
 import javax.swing.Icon
 
@@ -18,7 +18,7 @@ class ModelNavigationItem(val modelName: String, val offset: Int, val file: Virt
 
     init {
         ApplicationManager.getApplication().runReadAction {
-            moduleName = PsiManager.getInstance(project).findFile(file)?.let { psiFile -> Utils.getContainingModuleName(psiFile) }
+            moduleName = file.getContainingModuleName(project.addonPaths)
         }
     }
 
