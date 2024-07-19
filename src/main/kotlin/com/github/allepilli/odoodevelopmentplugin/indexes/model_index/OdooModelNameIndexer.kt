@@ -39,7 +39,7 @@ private fun LighterAST.getModuleName(fileContent: PsiDependentFileContent, addon
     }
 }
 
-private fun getModelNameData(fileContent: CharSequence, lighterAST: LighterAST, classNode: LighterASTNode, stmtList: LighterASTNode, moduleName: String?): Pair<String, OdooModelNameIndexItem>? {
+private fun getModelNameData(fileContent: CharSequence, lighterAST: LighterAST, stmtList: LighterASTNode, moduleName: String?): Pair<String, OdooModelNameIndexItem>? {
     var modelName: String? = null
     var modelNameOffset: Int = 0
     var parents: List<NameLocation> = emptyList()
@@ -124,6 +124,6 @@ private fun getModelNameData(fileContent: CharSequence, lighterAST: LighterAST, 
 private fun LighterAST.getAllModelNamesWithItems(fileContent: CharSequence, moduleName: String?): Map<String, OdooModelNameIndexItem> =
         getChildrenOfType(root, PyStubElementTypes.CLASS_DECLARATION).mapNotNull { classNode ->
             getChildrenOfType(classNode, PyElementTypes.STATEMENT_LIST).singleOrNull()?.let { stmtList ->
-                getModelNameData(fileContent, this, classNode, stmtList, moduleName)
+                getModelNameData(fileContent, this, stmtList, moduleName)
             }
         }.toMap()
