@@ -40,7 +40,7 @@ fun VirtualFile.processAllFiles(fileType: FileType) = sequence<VirtualFile> {
     }
 
     while (dirs.isNotEmpty()) {
-        val dir = dirs.first()
+        val dir = dirs.removeFirst()
         val (files, childDirs) = dir.children.partition { it.isFile }
 
         yieldAll(files.filter { it.fileType == fileType })
