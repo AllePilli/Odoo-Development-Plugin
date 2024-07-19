@@ -8,3 +8,5 @@ fun <T, K> Iterable<T>.uniqueBy(uniqueKeySelector: (T) -> K): List<T> = groupBy(
         .map { it.first() }
 
 fun <T> Collection<T>.takeUnlessEmpty() = takeUnless { it.isEmpty() }
+
+fun <T> ArrayDeque<T>.addAllLast(iterable: Iterable<T>) = iterable.forEach(::addLast)
