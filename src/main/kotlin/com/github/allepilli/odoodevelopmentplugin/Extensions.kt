@@ -24,18 +24,3 @@ fun LighterAST.getChildrenOfType(node: LighterASTNode, tokenSet: TokenSet): List
         LightTreeUtil.getChildrenOfType(this, node, tokenSet)
 
 inline fun <T, R> Iterable<T>.flatMapNotNull(transform: (T) -> Iterable<R>?): List<R> = mapNotNull(transform).flatten()
-
-fun VirtualFile.getAllFiles(fileType: FileType): List<VirtualFile> {
-    if (!isDirectory) throw IllegalArgumentException("This function should only be called on directories, not $this")
-
-    fun MutableList<VirtualFile>.addChildren(children: List<VirtualFile>) {
-        addAll(children.filter { it.isFile && it.fileType == fileType })
-    }
-
-    return buildList {
-        this@getAllFiles.children.partition { it.isFile }.let { (files, dirs) ->
-            addChildren(files)
-            dirs.forEach { dir -> addChildren(dir.getAllFiles(fileType)) }
-        }
-    }
-}

@@ -2,9 +2,9 @@ package com.github.allepilli.odoodevelopmentplugin.indexes.model_index
 
 import com.github.allepilli.odoodevelopmentplugin.computeReadAction
 import com.github.allepilli.odoodevelopmentplugin.extensions.findOdooModule
+import com.github.allepilli.odoodevelopmentplugin.extensions.getAllFiles
 import com.github.allepilli.odoodevelopmentplugin.extensions.hasModelName
 import com.github.allepilli.odoodevelopmentplugin.flatMapNotNull
-import com.github.allepilli.odoodevelopmentplugin.getAllFiles
 import com.github.allepilli.odoodevelopmentplugin.indexes.module_dependency_index.ModuleDependencyIndexUtil
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.IndexNotReadyException
