@@ -54,10 +54,9 @@ class OdooRunConfigurationSettingsEditor(project: Project): SettingsEditor<OdooR
                     .component
         }
         row("Database Name:") { _dbNameComponent = textField().component }
-        row("Addons Path(s)") {
-            _addonsPathsComponent = textField()
-                    .comment("Paths relative to the project root directory")
-                    .component
+        row("Additional Addon Paths") {
+            rowComment("Addon paths additional to the ones chosen in the 'General Odoo Settings', these should be relative to the project root directory.")
+            _addonsPathsComponent = textField().component
         }
         row("Modules:") {
             cell(_modulesTextField).resizableColumn()

@@ -1,6 +1,7 @@
 package com.github.allepilli.odoodevelopmentplugin.indexes.model_index
 
 import com.github.allepilli.odoodevelopmentplugin.computeReadAction
+import com.github.allepilli.odoodevelopmentplugin.extensions.addonPaths
 import com.github.allepilli.odoodevelopmentplugin.extensions.findOdooModule
 import com.github.allepilli.odoodevelopmentplugin.extensions.getAllFiles
 import com.github.allepilli.odoodevelopmentplugin.extensions.hasModelName
@@ -9,6 +10,7 @@ import com.github.allepilli.odoodevelopmentplugin.indexes.module_dependency_inde
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ProjectLocator
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
@@ -32,7 +34,7 @@ class OdooModelNameIndex: FileBasedIndexExtension<String, OdooModelNameIndexItem
 
     override fun getName(): ID<String, OdooModelNameIndexItem> = OdooModelNameIndexUtil.NAME
     override fun dependsOnFileContent(): Boolean = true
-    override fun getVersion(): Int = 1
+    override fun getVersion(): Int = 2
     override fun getIndexer(): DataIndexer<String, OdooModelNameIndexItem, FileContent> = indexer
     override fun getKeyDescriptor(): KeyDescriptor<String> = EnumeratorStringDescriptor.INSTANCE
     override fun getValueExternalizer(): DataExternalizer<OdooModelNameIndexItem> = OdooModelNameIndexItem.dataExternalizer
@@ -40,11 +42,17 @@ class OdooModelNameIndex: FileBasedIndexExtension<String, OdooModelNameIndexItem
     override fun getInputFilter(): FileBasedIndex.InputFilter =
             object: DefaultFileTypeSpecificInputFilter(PythonFileType.INSTANCE) {
                 override fun acceptInput(file: VirtualFile): Boolean {
-                    val path = file.path.split(File.separatorChar)
+                    val project = ProjectLocator.getInstance().guessProjectForFile(file)
+                    val addonPaths = project?.addonPaths
 
-                    return ("addons" in path || "enterprise" in path) &&
-                            "tests" !in path &&
-                            !file.nameWithoutExtension.startsWith("__")
+                    return if (addonPaths?.isNotEmpty() == true) {
+                        addonPaths.any { file.path.startsWith(it) } && "${File.separatorChar}tests${File.separatorChar}" !in file.path && !file.nameWithoutExtension.startsWith("__")
+                    } else {
+                        // Fall back on some hardcoded values
+                        val path = file.path.split(File.separatorChar)
+
+                        ("addons" in path || "enterprise" in path) && "tests" !in path && !file.nameWithoutExtension.startsWith("__")
+                    }
                 }
             }
 }
