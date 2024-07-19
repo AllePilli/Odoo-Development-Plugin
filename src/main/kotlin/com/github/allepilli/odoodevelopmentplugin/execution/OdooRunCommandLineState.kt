@@ -1,5 +1,6 @@
 package com.github.allepilli.odoodevelopmentplugin.execution
 
+import com.github.allepilli.odoodevelopmentplugin.settings.general.GeneralSettingsState
 import com.intellij.execution.Executor
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
@@ -22,7 +23,19 @@ class OdooRunCommandLineState(private val runConfiguration: OdooRunConfiguration
                 pythonScriptPath = getTargetPath(helpersAwareRequest.targetEnvironmentRequest, Path.of(odooBin.absolutePath))
                 workingDir = getPythonExecutionWorkingDir(helpersAwareRequest.targetEnvironmentRequest)
 
-                addParameter("--addons-path=${runConfiguration.addonsPaths}")
+                val addonPaths = GeneralSettingsState.getInstance(runConfiguration.project)
+                        .addonPaths
+                        .filterNot { it.endsWith("odoo/odoo/addons") } // odoo core modules should not be added to the run config
+                        .toMutableList()
+
+                runConfiguration.addonsPaths
+                        .split(',')
+                        .filter { runConfigAddonPath -> addonPaths.none { it.endsWith(runConfigAddonPath) } }
+                        .forEach {
+                            addonPaths.add("${runConfiguration.project.basePath}/$it")
+                        }
+
+                addParameter("--addons-path=${addonPaths.joinToString(separator = ",")}")
                 addParameters("--database", runConfiguration.dbName)
 
                 when (runConfiguration.runType) {
