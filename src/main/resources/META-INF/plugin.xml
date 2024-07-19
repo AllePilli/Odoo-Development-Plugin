@@ -57,6 +57,19 @@
 
         <codeInsight.lineMarkerProvider language="Python"
                                         implementationClass="com.github.allepilli.odoodevelopmentplugin.line_markers.override_methods.OverrideMethodLineMarkerProvider"/>
+
+        <completion.contributor language="Python"
+                                implementationClass="com.github.allepilli.odoodevelopmentplugin.completion.model_method_completion.ModelMethodCompletionContributor"
+                                order="last"/>
+
+        <projectConfigurable displayName="General Odoo Plugin Settings"
+                             parentId="tools"
+                             instance="com.github.allepilli.odoodevelopmentplugin.settings.general.GeneralSettingsConfigurable"
+                             id="com.github.allepilli.odoodevelopmentplugin.settings.general.GeneralSettingsConfigurable"/>
+    </extensions>
+
+    <extensions defaultExtensionNs="Pythonid">
+        <pyClassMembersProvider implementation="com.github.allepilli.odoodevelopmentplugin.python.ModelMethodClassMemberProvider"/>
     </extensions>
 
     <actions resource-bundle="messages.OdooActionsBundle">

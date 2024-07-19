@@ -1,6 +1,8 @@
 package com.github.allepilli.odoodevelopmentplugin.indexes.model_index
 
-import com.github.allepilli.odoodevelopmentplugin.Utils
+import com.github.allepilli.odoodevelopmentplugin.computeReadAction
+import com.github.allepilli.odoodevelopmentplugin.extensions.findOdooModule
+import com.github.allepilli.odoodevelopmentplugin.extensions.hasModelName
 import com.github.allepilli.odoodevelopmentplugin.flatMapNotNull
 import com.github.allepilli.odoodevelopmentplugin.getAllFiles
 import com.github.allepilli.odoodevelopmentplugin.indexes.module_dependency_index.ModuleDependencyIndexUtil
@@ -8,8 +10,10 @@ import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ThrowableComputable
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
+import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.ProjectScope
 import com.intellij.util.Processor
@@ -21,8 +25,6 @@ import com.intellij.util.io.KeyDescriptor
 import com.jetbrains.python.PythonFileType
 import com.jetbrains.python.psi.PyClass
 import com.jetbrains.python.psi.PyFile
-import com.jetbrains.python.psi.PyListLiteralExpression
-import com.jetbrains.python.psi.PyStringLiteralExpression
 import java.io.File
 
 class OdooModelNameIndex: FileBasedIndexExtension<String, OdooModelNameIndexItem>() {
@@ -30,7 +32,7 @@ class OdooModelNameIndex: FileBasedIndexExtension<String, OdooModelNameIndexItem
 
     override fun getName(): ID<String, OdooModelNameIndexItem> = OdooModelNameIndexUtil.NAME
     override fun dependsOnFileContent(): Boolean = true
-    override fun getVersion(): Int = 2
+    override fun getVersion(): Int = 1
     override fun getIndexer(): DataIndexer<String, OdooModelNameIndexItem, FileContent> = indexer
     override fun getKeyDescriptor(): KeyDescriptor<String> = EnumeratorStringDescriptor.INSTANCE
     override fun getValueExternalizer(): DataExternalizer<OdooModelNameIndexItem> = OdooModelNameIndexItem.dataExternalizer
@@ -62,7 +64,7 @@ object OdooModelNameIndexUtil {
     fun getModuleDependencyScope(project: Project, moduleDirectory: VirtualFile, includeModule: Boolean = true) = if (moduleDirectory.isDirectory) {
         val dependencyFiles = ModuleDependencyIndexUtil.findAllDependencies(project, moduleDirectory.name)
                 .flatMapNotNull { dependencyName ->
-                    Utils.findModule(dependencyName, project)?.getAllFiles(PythonFileType.INSTANCE)
+                    project.findOdooModule(dependencyName)?.getAllFiles(PythonFileType.INSTANCE)
                 }
 
         val files = if (includeModule) dependencyFiles + moduleDirectory.getAllFiles(PythonFileType.INSTANCE) else dependencyFiles
@@ -75,6 +77,30 @@ object OdooModelNameIndexUtil {
             FileBasedIndex.getInstance().getAllKeys(NAME, project).toList()
         } catch (e: IndexNotReadyException) {
             emptyList()
+        }
+    }
+
+    fun getModelInfo(
+            project: Project,
+            modelName: String,
+            moduleName: String,
+            addonPaths: List<String>,
+    ): OdooModelNameIndexItem? {
+        val moduleVF = try {
+            FilenameIndex.getVirtualFilesByName(moduleName, true, ProjectScope.getAllScope(project))
+                    .firstOrNull { it.parent.path in addonPaths }
+        } catch (_: IndexNotReadyException) {
+            return null
+        }
+        if (moduleVF == null) return null
+
+        val scope = GlobalSearchScope.FilesScope.filesScope(project, moduleVF.getAllFiles(PythonFileType.INSTANCE))
+
+        return try {
+            FileBasedIndex.getInstance().getValues(NAME, modelName, scope)
+                    .singleOrNull()
+        } catch (_: IndexNotReadyException) {
+            null
         }
     }
 
@@ -94,10 +120,11 @@ object OdooModelNameIndexUtil {
         }
     }
 
-    fun getModelName(pyClass: PyClass): String? = ReadAction.compute<String, RuntimeException> {
+    fun getModelName(pyClass: PyClass, containingFile: VirtualFile? = null): String? = ReadAction.compute<String, RuntimeException> {
         try {
+            val virtualFile = containingFile ?: pyClass.containingFile.virtualFile
             val map = FileBasedIndex.getInstance()
-                    .getFileData(NAME, pyClass.containingFile.virtualFile, pyClass.project)
+                    .getFileData(NAME, virtualFile, pyClass.project)
                     .takeIf { it.isNotEmpty() }
                     ?: return@compute null
 
@@ -112,12 +139,31 @@ object OdooModelNameIndexUtil {
         }
     }
 
+    /**
+     * Get the [PyClass] of the model with [modelName] in [module]
+     */
+    fun getModel(modelName: String, module: String, project: Project): PyClass? = ReadAction.compute<PyClass?, RuntimeException>(ThrowableComputable {
+        val moduleVF = project.findOdooModule(module) ?: return@ThrowableComputable null
+
+        val modelVF = try {
+            FileBasedIndex.getInstance().getContainingFiles(NAME, modelName, GlobalSearchScope.projectScope(project))
+                    .singleOrNull { virtualFile -> VfsUtil.isAncestor(moduleVF, virtualFile, true) }
+                    ?: return@ThrowableComputable null
+        } catch (_: IndexNotReadyException) {
+            return@ThrowableComputable null
+        }
+
+        (PsiManager.getInstance(project).findFile(modelVF) as? PyFile)?.topLevelClasses?.firstOrNull { pyClass ->
+            pyClass.hasModelName(modelName)
+        }
+    })
+
     fun findModelsByName(
             project: Project,
             name: String,
             moduleRoot: VirtualFile? = null,
             altScope: GlobalSearchScope = ProjectScope.getAllScope(project),
-    ): List<PyClass> = ReadAction.compute<List<PyClass>, RuntimeException>(ThrowableComputable {
+    ): List<PyClass> = computeReadAction {
         val scope = if (moduleRoot != null) getModuleDependencyScope(project, moduleRoot)
                             else GlobalSearchScope.projectScope(project).intersectWith(altScope)
 
@@ -127,30 +173,13 @@ object OdooModelNameIndexUtil {
             emptyList()
         }
 
-        if (files.isEmpty()) return@ThrowableComputable emptyList<PyClass>()
+        if (files.isEmpty()) return@computeReadAction emptyList<PyClass>()
         val psiManager = PsiManager.getInstance(project)
 
         files.filter { it.isValid }.flatMapNotNull { virtualFile ->
             (psiManager.findFile(virtualFile) as? PyFile)?.topLevelClasses?.filter { pyClass ->
-                var matches = name == pyClass.findClassAttribute("_name", true, null)?.findAssignedValue()
-                        ?.let { (it as? PyStringLiteralExpression)?.stringValue }
-
-                if (!matches) {
-                    matches = pyClass.findClassAttribute("_inherit", true, null)?.findAssignedValue()?.let {
-                        when (it) {
-                            is PyStringLiteralExpression -> name == it.stringValue
-                            is PyListLiteralExpression -> name == it.elements
-                                    .filterIsInstance<PyStringLiteralExpression>()
-                                    .firstOrNull()
-                                    ?.stringValue
-
-                            else -> false
-                        }
-                    } == true
-                }
-
-                matches
+                pyClass.hasModelName(name)
             }
         }
-    })
+    }
 }

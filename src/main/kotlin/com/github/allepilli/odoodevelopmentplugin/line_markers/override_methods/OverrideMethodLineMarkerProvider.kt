@@ -1,7 +1,10 @@
 package com.github.allepilli.odoodevelopmentplugin.line_markers.override_methods
 
 import com.github.allepilli.odoodevelopmentplugin.InheritanceUtils
-import com.github.allepilli.odoodevelopmentplugin.Utils
+import com.github.allepilli.odoodevelopmentplugin.extensions.addonPaths
+import com.github.allepilli.odoodevelopmentplugin.extensions.getContainingModule
+import com.github.allepilli.odoodevelopmentplugin.extensions.getModelName
+import com.github.allepilli.odoodevelopmentplugin.extensions.takeUnlessEmpty
 import com.github.allepilli.odoodevelopmentplugin.indexes.model_index.OdooModelNameIndexUtil
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerProvider
@@ -21,9 +24,11 @@ private const val NOT_A_MODEL_NAME = "__Odoo_Development_Plugin_Not_A_Model_Clas
 
 class OverrideMethodLineMarkerProvider: RelatedItemLineMarkerProvider(), DumbAware {
     override fun collectSlowLineMarkers(elements: List<PsiElement>, result: MutableCollection<in LineMarkerInfo<*>>) {
-        var currentModule: VirtualFile? = null
+        val addonPaths = elements.firstOrNull()?.project?.addonPaths ?: return
+        var currentModule: VirtualFile?
         var currentClassTextRange = -1..-1
-        var currentModelName: String = NOT_A_MODEL_NAME
+        var currentModelName: String
+        var currentInheritedMethods: List<PyFunction> = listOf()
 
         fun setClass(pyClass: PyClass) {
             currentModule = null
@@ -32,15 +37,19 @@ class OverrideMethodLineMarkerProvider: RelatedItemLineMarkerProvider(), DumbAwa
                 logger.warn("Could not find model for ${pyClass.name}")
                 NOT_A_MODEL_NAME
             }
+
+            currentModule = if (currentModelName != NOT_A_MODEL_NAME) {
+                pyClass.containingFile.virtualFile.getContainingModule(pyClass.project, addonPaths)
+            } else null
+
+            currentInheritedMethods = if (currentModelName != NOT_A_MODEL_NAME && currentModule != null) {
+                InheritanceUtils.getAllInheritedMethods(pyClass.project, currentModelName, currentModule!!)
+            } else listOf()
         }
 
         fun tryCollectForMethod(identifier: PsiElement, method: PyFunction) {
-            if (currentModelName != NOT_A_MODEL_NAME && currentClassTextRange.first != -1) {
-                if (currentModule == null)
-                    currentModule = Utils.getContainingModule(method.containingFile)
-
-                if (currentModule != null)
-                    collectModelMethodNavigationMarkers(identifier, method, currentClassTextRange, currentModelName, currentModule!!, result)
+            if (currentInheritedMethods.isNotEmpty()) {
+                collectModelMethodNavigationMarkers(identifier, method, currentInheritedMethods, result)
             }
         }
 
@@ -73,38 +82,25 @@ class OverrideMethodLineMarkerProvider: RelatedItemLineMarkerProvider(), DumbAwa
         }
     }
 
-    private fun collectModelMethodNavigationMarkers(identifier: PsiElement, method: PyFunction, classTextRange: IntRange, modelName: String, module: VirtualFile, result: MutableCollection<in LineMarkerInfo<*>>) {
-        val project = method.project
-        if (!InheritanceUtils.hasParent(project, modelName, module)) return
+    private fun collectModelMethodNavigationMarkers(identifier: PsiElement, method: PyFunction, inheritedMethods: List<PyFunction>, result: MutableCollection<in LineMarkerInfo<*>>) {
+        val overriddenMethods = inheritedMethods
+                .filter { parentMethod -> parentMethod.name == method.name }
+                .takeUnlessEmpty()
+                ?: return
 
-        val parentModels = InheritanceUtils.getParentModels(project, modelName, module)
-        val filePath = identifier.containingFile.virtualFile.path
-        val ancestorMethods = parentModels.mapNotNull { parent ->
-            // We have to make sure we don't conclude that the model is inheriting from itself otherwise every method
-            // in this model will reference back to itself with a line marker
-            if (parent.containingFile.virtualFile.path == filePath && parent.textOffset == classTextRange.first) null
-            else {
-                val parentMethod = parent.findMethodByName(method.name, false, null)
-                if (parentMethod == null) null
-                else parent to parentMethod
-            }
-        }
+        val tooltip = if (overriddenMethods.size == 1) {
+            val parentClass = overriddenMethods.single().containingClass!!
+            val parentModuleName = parentClass.containingFile.virtualFile.getContainingModule(method.project)?.name
+            val parentModelName = parentClass.getModelName()
 
+            "Overrides method of $parentModelName ($parentModuleName)"
+        } else "Overrides multiple methods"
 
-        if (ancestorMethods.isNotEmpty()) {
-            val tooltip = if (ancestorMethods.size == 1) {
-                val parent = ancestorMethods.single().first
-                val moduleOfParent = Utils.getContainingModule(parent.containingFile)?.name
-                val parentModelName = OdooModelNameIndexUtil.getModelName(parent)
-
-                "Overrides method of $parentModelName ($moduleOfParent)"
-            } else "Overrides multiple methods"
-
-            val builder = NavigationGutterIconBuilder.create(AllIcons.Gutter.OverridingMethod)
-                    .setTargets(ancestorMethods.map { it.second })
-                    .setTooltipText(tooltip)
-
-            result.add(builder.createLineMarkerInfo(identifier))
-        }
+        result.add(
+                NavigationGutterIconBuilder.create(AllIcons.Gutter.OverridingMethod)
+                        .setTargets(overriddenMethods)
+                        .setTooltipText(tooltip)
+                        .createLineMarkerInfo(identifier)
+        )
     }
 }
