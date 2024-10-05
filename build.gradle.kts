@@ -1,7 +1,7 @@
 plugins {
     id("java")
     id("org.jetbrains.kotlin.jvm") version "1.9.21"
-    id("org.jetbrains.intellij") version "1.16.1"
+    id("org.jetbrains.intellij.platform") version "2.0.1"
 }
 
 group = "com.github.AllePilli"
@@ -9,43 +9,43 @@ version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
+    intellijPlatform {
+        defaultRepositories()
+        jetbrainsRuntime()
+        marketplace()
+    }
 }
 
 // Configure Gradle IntelliJ Plugin
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
-intellij {
-    version.set("2024.1")
-    type.set("PC") // Target Pycharm Community Edition
+// Read more version 2.x: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin.html
+dependencies {
+    intellijPlatform {
+        pycharmCommunity("2024.2")
+//        local(file("/home/odoo/.local/share/JetBrains/Toolbox/apps/pycharm-community")) // for using the local pycharm app
+        jetbrainsRuntime()
+        instrumentationTools()
 
-    plugins.set(listOf("PythonCore", "PsiViewer:241.14494.158-EAP-SNAPSHOT"))
+        bundledPlugin("PythonCore")
+        plugin("PsiViewer:242.4697")
+    }
 }
 
-tasks {
-    // Set the JVM compatibility versions
-    withType<JavaCompile> {
-        sourceCompatibility = "17"
-        targetCompatibility = "17"
-    }
-    withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-        kotlinOptions.jvmTarget = "17"
+intellijPlatform {
+    pluginConfiguration {
+        ideaVersion {
+            sinceBuild = "242"
+            untilBuild = "242.*"
+        }
     }
 
-    patchPluginXml {
-        sinceBuild.set("241")
-        untilBuild.set("241.*")
+    signing {
+        certificateChain = System.getenv("CERTIFICATE_CHAIN")
+        privateKey = System.getenv("PRIVATE_KEY")
+        password = System.getenv("PRIVATE_KEY_PASSWORD")
     }
 
-    signPlugin {
-        certificateChain.set(System.getenv("CERTIFICATE_CHAIN"))
-        privateKey.set(System.getenv("PRIVATE_KEY"))
-        password.set(System.getenv("PRIVATE_KEY_PASSWORD"))
-    }
-
-    publishPlugin {
-        token.set(System.getenv("PUBLISH_TOKEN"))
-    }
-
-    runIde {
-        ideDir.set(file("/home/odoo/.local/share/JetBrains/Toolbox/apps/pycharm-community"))
+    publishing {
+        token = System.getenv("PUBLISH_TOKEN")
     }
 }
