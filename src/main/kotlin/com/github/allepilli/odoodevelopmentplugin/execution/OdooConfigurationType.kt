@@ -7,7 +7,7 @@ import com.intellij.execution.configurations.ConfigurationTypeUtil
 import javax.swing.Icon
 
 class OdooConfigurationType: ConfigurationType {
-    companion object {
+    object Util {
         @JvmStatic
         fun getInstance() = ConfigurationTypeUtil.findConfigurationType(OdooConfigurationType::class.java)
     }

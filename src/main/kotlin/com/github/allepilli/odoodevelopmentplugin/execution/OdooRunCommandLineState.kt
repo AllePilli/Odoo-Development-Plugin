@@ -88,7 +88,7 @@ class OdooRunCommandLineState(private val runConfiguration: OdooRunConfiguration
         return executeWithCMDEmulation(processHandler)
     }
 
-    override fun execute(executor: Executor, converter: PythonScriptTargetedCommandLineBuilder): ExecutionResult? {
+    override fun execute(executor: Executor, converter: PythonScriptTargetedCommandLineBuilder): ExecutionResult {
         setRunWithPty(true)
 
         val processHandler = startProcess(converter)

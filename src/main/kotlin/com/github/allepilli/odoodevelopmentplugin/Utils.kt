@@ -5,7 +5,6 @@ import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.TextFieldWithBrowseButton
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.ui.components.JBTextField
-import com.intellij.util.ThrowableConsumer
 import com.intellij.util.textCompletion.TextFieldWithCompletion
 import kotlin.reflect.KProperty
 
@@ -40,14 +39,4 @@ class ComboBoxValue<E>(private val comboBox: ComboBox<E>?, private val defaultVa
     operator fun setValue(thisRef: Any?, property: KProperty<*>, value: E) { comboBox?.item = value }
 }
 
-fun <T> computeReadAction(computable: () -> T): T = ReadAction.compute<T, RuntimeException>(throwableComputable(computable))
-
-fun <S, T: Throwable> throwableConsumer(consumer: (S) -> Unit) = object : ThrowableConsumer<S, T> {
-    override fun consume(p0: S) {
-        consumer(p0)
-    }
-}
-
-fun <T, E: Throwable> throwableComputable(computable: () -> T) = object : ThrowableComputable<T, E> {
-    override fun compute(): T = computable()
-}
+fun <T> computeReadAction(computable: () -> T): T = ReadAction.compute<T, RuntimeException>(ThrowableComputable(computable))

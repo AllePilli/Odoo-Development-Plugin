@@ -1,8 +1,6 @@
 package com.github.allepilli.odoodevelopmentplugin.indexes.model_index
 
 import com.github.allepilli.odoodevelopmentplugin.indexes.IndexUtil
-import com.github.allepilli.odoodevelopmentplugin.throwableComputable
-import com.github.allepilli.odoodevelopmentplugin.throwableConsumer
 import com.intellij.util.io.DataExternalizer
 import com.intellij.util.io.DataInputOutputUtil
 import java.io.DataInput
@@ -22,15 +20,15 @@ data class OdooModelNameIndexItem(val modelNameOffset: Int,
                                   val methods: List<NameLocation> = emptyList()) {
     companion object {
         private fun DataOutput.writeNameLocation(list: List<NameLocation>) =
-                DataInputOutputUtil.writeSeq(this, list, throwableConsumer { nameLocation ->
+                DataInputOutputUtil.writeSeq(this, list) { nameLocation ->
                     IndexUtil.writeString(this, nameLocation.name)
                     DataInputOutputUtil.writeINT(this, nameLocation.offset)
-                })
+                }
 
         private fun DataInput.readNameLocation(): List<NameLocation> =
-                DataInputOutputUtil.readSeq(this, throwableComputable {
+                DataInputOutputUtil.readSeq(this) {
                     NameLocation(IndexUtil.readString(this), DataInputOutputUtil.readINT(this))
-                })
+                }
 
         val dataExternalizer = object: DataExternalizer<OdooModelNameIndexItem> {
             override fun save(record: DataOutput, item: OdooModelNameIndexItem) {

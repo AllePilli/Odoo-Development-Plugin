@@ -40,7 +40,7 @@ class OdooRunConfiguration(project: Project, factory: ConfigurationFactory) : Ab
     override fun getOptions(): OdooRunConfigurationOptions = super.getOptions() as OdooRunConfigurationOptions
     override fun createConfigurationEditor(): SettingsEditor<OdooRunConfiguration> = OdooRunConfigurationSettingsEditor(project)
     override fun getState(executor: Executor, env: ExecutionEnvironment): RunProfileState = OdooRunCommandLineState(this, env)
-    override fun getType(): ConfigurationType = OdooConfigurationType.getInstance()
+    override fun getType(): ConfigurationType = OdooConfigurationType.Util.getInstance()
     override fun checkConfiguration() {
         super.checkConfiguration()
         checkRunType()

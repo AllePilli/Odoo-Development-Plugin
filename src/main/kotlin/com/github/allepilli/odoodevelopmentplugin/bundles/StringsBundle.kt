@@ -5,7 +5,7 @@ import org.jetbrains.annotations.PropertyKey
 import java.util.function.Supplier
 
 object StringsBundle {
-    const val STRINGS_BUNDLE = "messages.StringsBundle"
+    private const val STRINGS_BUNDLE = "messages.StringsBundle"
 
     private val bundle = DynamicBundle(StringsBundle::class.java, STRINGS_BUNDLE)
 

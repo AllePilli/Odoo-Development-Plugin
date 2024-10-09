@@ -6,31 +6,24 @@ import com.intellij.execution.RunManager
 import com.intellij.execution.actions.RunConfigurationsComboBoxAction
 import com.intellij.ide.IdeEventQueue
 import com.intellij.ide.ui.laf.darcula.ui.ToolbarComboWidgetUiSizes
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionUpdateThread
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.Presentation
-import com.intellij.openapi.actionSystem.ToggleAction
-import com.intellij.openapi.actionSystem.Toggleable
+import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.actionSystem.impl.Utils
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.serviceIfCreated
-import com.intellij.openapi.observable.util.whenDisposed
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.ui.popup.JBPopupFactory
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.NlsActions
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBEmptyBorder
 import com.intellij.util.ui.JBInsets
 import com.intellij.util.ui.JBUI
-import java.awt.Component
 import java.awt.Insets
 import javax.swing.JComponent
-import javax.swing.JList
 import javax.swing.ListCellRenderer
 import javax.swing.SwingConstants
 
@@ -84,11 +77,10 @@ abstract class ToggleRunTypeAction(val states: List<String>): ToggleAction() {
     companion object {
         private val popupContentBorder = JBEmptyBorder(JBUI.insets(2, 10))
         private val minimumPopupSize = JBDimension(135, 0)
-        private val listCellRenderer = object : ListCellRenderer<String> {
-            override fun getListCellRendererComponent(list: JList<out String?>?, value: String?, index: Int, isSelected: Boolean, cellHasFocus: Boolean): Component =
-                    JBLabel(value ?: "").apply {
-                        border = JBEmptyBorder(JBUI.insets(0, 5))
-                    }
+        private val listCellRenderer = ListCellRenderer<String> { _, value, _, _, _ ->
+            JBLabel(value ?: "").apply {
+                border = JBEmptyBorder(JBUI.insets(0, 5))
+            }
         }
     }
 
@@ -100,13 +92,13 @@ abstract class ToggleRunTypeAction(val states: List<String>): ToggleAction() {
 
         val component = e.inputEvent?.component as? JComponent ?: return
         val start = IdeEventQueue.getInstance().popupTriggerTime
-        val popup = createPopup(e) ?: return
+        val popup = createPopup(e)
 
         Utils.showPopupElapsedMillisIfConfigured(start, popup.content)
         popup.showUnderneathOf(component)
     }
 
-    fun createPopup(e: AnActionEvent): JBPopup? = JBPopupFactory.getInstance().createPopupChooserBuilder<String>(states)
+    private fun createPopup(e: AnActionEvent): JBPopup = JBPopupFactory.getInstance().createPopupChooserBuilder(states)
             .setItemChosenCallback { chosenItem ->
                selectedState = chosenItem
                onStateSelected(chosenItem)
@@ -115,7 +107,8 @@ abstract class ToggleRunTypeAction(val states: List<String>): ToggleAction() {
             .setMinSize(minimumPopupSize)
             .createPopup()
             .apply {
-                whenDisposed {
+                Disposer.register(this) {
+                    // When Disposed
                     Toggleable.setSelected(e.presentation, false)
                 }
 

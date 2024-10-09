@@ -41,7 +41,7 @@ private fun LighterAST.getModuleName(fileContent: PsiDependentFileContent, addon
 
 private fun getModelNameData(fileContent: CharSequence, lighterAST: LighterAST, stmtList: LighterASTNode, moduleName: String?): Pair<String, OdooModelNameIndexItem>? {
     var modelName: String? = null
-    var modelNameOffset: Int = 0
+    var modelNameOffset = 0
     var parents: List<NameLocation> = emptyList()
     val statements = lighterAST.getChildrenOfType(stmtList, PyElementTypes.ASSIGNMENT_STATEMENT)
 
