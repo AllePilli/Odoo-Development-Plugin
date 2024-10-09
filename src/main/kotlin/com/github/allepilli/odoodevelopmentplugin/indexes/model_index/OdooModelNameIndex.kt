@@ -117,7 +117,7 @@ object OdooModelNameIndexUtil {
             modelName: String,
             moduleRoot: VirtualFile? = null,
             altScope: GlobalSearchScope = ProjectScope.getAllScope(project),
-    ): List<OdooModelNameIndexItem> = ReadAction.compute<List<OdooModelNameIndexItem>, kotlin.RuntimeException> {
+    ): List<OdooModelNameIndexItem> = ReadAction.compute<List<OdooModelNameIndexItem>, RuntimeException> {
         val scope = if (moduleRoot != null) getModuleDependencyScope(project, moduleRoot)
                     else GlobalSearchScope.projectScope(project).intersectWith(altScope)
 

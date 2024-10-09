@@ -3,12 +3,8 @@ package com.github.allepilli.odoodevelopmentplugin.references.python.model_in_co
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.PsiReferenceContributor
 import com.intellij.psi.PsiReferenceRegistrar
-import com.intellij.python.langInjection.PythonPatterns
-import com.jetbrains.python.PyElementTypes
-import com.jetbrains.python.PyElementTypesFacade
 import com.jetbrains.python.psi.PyArgumentList
 import com.jetbrains.python.psi.PyCallExpression
-import com.jetbrains.python.psi.PyElementType
 import com.jetbrains.python.psi.PyKeywordArgument
 import com.jetbrains.python.psi.PyStringLiteralExpression
 
