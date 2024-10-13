@@ -1,12 +1,20 @@
 package com.github.allepilli.odoodevelopmentplugin
 
+import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.TextFieldWithBrowseButton
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.ui.components.JBTextField
 import com.intellij.util.textCompletion.TextFieldWithCompletion
+import java.nio.charset.Charset
+import java.nio.file.Path
 import kotlin.reflect.KProperty
+
+private val simpleCommandLineDelimiterRgx = """\s+""".toRegex()
+private val utf8 = Charset.forName("UTF-8")
 
 inline fun <reified E> buildArray(builderAction: MutableList<E>.() -> Unit): Array<E> = buildList(builderAction).toTypedArray()
 
@@ -40,3 +48,11 @@ class ComboBoxValue<E>(private val comboBox: ComboBox<E>?, private val defaultVa
 }
 
 fun <T> computeReadAction(computable: () -> T): T = ReadAction.compute<T, RuntimeException>(ThrowableComputable(computable))
+
+fun simpleCommandLine(command: String, project: Project): GeneralCommandLine =
+        simpleCommandLine(command, project.guessProjectDir()?.path?.let { Path.of(it) })
+
+fun simpleCommandLine(command: String, workingDirectory: Path? = null): GeneralCommandLine =
+        GeneralCommandLine(command.split(simpleCommandLineDelimiterRgx))
+                .withCharset(utf8)
+                .withWorkingDirectory(workingDirectory)

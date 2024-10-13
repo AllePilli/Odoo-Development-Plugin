@@ -66,6 +66,8 @@
                              parentId="tools"
                              instance="com.github.allepilli.odoodevelopmentplugin.settings.general.GeneralSettingsConfigurable"
                              id="com.github.allepilli.odoodevelopmentplugin.settings.general.GeneralSettingsConfigurable"/>
+
+        <notificationGroup displayType="BALLOON" id="Odoo Balloon Group"/>
     </extensions>
 
     <extensions defaultExtensionNs="Pythonid">
@@ -84,9 +86,14 @@
                 id="NewXmlFile">
             <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewOdooManifestFile"/>
         </action>
+        <action class="com.github.allepilli.odoodevelopmentplugin.actions.DropDBAction"
+                id="DropDBAction"
+                icon="com.github.allepilli.odoodevelopmentplugin.OdooIcons.odoo">
+            <add-to-group group-id="MainToolbarRight" anchor="first"/>
+        </action>
         <action class="com.github.allepilli.odoodevelopmentplugin.actions.RunTypeSelector"
                 id="RunTypeSelector">
-            <add-to-group group-id="MainToolbarRight" anchor="first"/>
+            <add-to-group group-id="MainToolbarRight" relative-to-action="DropDBAction" anchor="after"/>
         </action>
         <action class="com.github.allepilli.odoodevelopmentplugin.actions.OpenDBAction"
                 id="OpenDbAction"
