@@ -41,9 +41,7 @@ class RunTypeSelector: ToggleRunTypeAction(OdooRunType.entries.map { it.presenta
         val runConfigurationAction = actionManager.getAction("RunConfiguration") as? RunConfigurationsComboBoxAction ?: return
         runConfigurationAction.update(e)
 
-        e.project?.let { RunManager.getInstanceIfCreated(it) }?.selectedConfiguration?.let { runConfigurationSettings ->
-            val configuration = runConfigurationSettings.configuration
-
+        e.project?.let { RunManager.getInstanceIfCreated(it) }?.selectedConfiguration?.configuration?.let { configuration ->
             if (configuration is OdooRunConfiguration) {
                 e.presentation.isVisible = true
                 selectedRunConfiguration = configuration
