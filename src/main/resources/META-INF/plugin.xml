@@ -49,6 +49,9 @@
         <psi.referenceContributor id="com.github.allepilli.odoodevelopmentplugin.references.python.compute_function.ComputeFunctionContributor"
                                   implementation="com.github.allepilli.odoodevelopmentplugin.references.python.compute_function.ComputeFunctionContributor"
                                   language="Python"/>
+        <psi.referenceContributor id="com.github.allepilli.odoodevelopmentplugin.references.python.manifest_module_dependency.ManifestModuleDependencyContributor"
+                                  implementation="com.github.allepilli.odoodevelopmentplugin.references.python.manifest_module_dependency.ManifestModuleDependencyContributor"
+                                  language="Python"/>
 
         <configurationType implementation="com.github.allepilli.odoodevelopmentplugin.execution.OdooConfigurationType"/>
 
