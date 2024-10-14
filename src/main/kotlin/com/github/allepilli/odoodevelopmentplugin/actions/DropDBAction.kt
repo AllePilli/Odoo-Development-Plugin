@@ -80,23 +80,31 @@ class DropDBAction: AnAction() {
 
         val selectedRunConfiguration = settings.configuration
 
-        if (!isRunning.get() && selectedRunConfiguration is OdooRunConfiguration) {
-            ExecutionManager.getInstance(project)?.getRunningDescriptors { it == settings }?.let {
-                // If the current run configuration is running
-                if (it.isNotEmpty()) isRunning.set(true)
-            }
-        }
-
-        if (selectedRunConfiguration is OdooRunConfiguration) {
-            e.presentation.isVisible = true
-            currentDBName = selectedRunConfiguration.dbName
-            e.presentation.text = calcText(selectedRunConfiguration.dbName)
-
-            e.presentation.isEnabled = !isRunning.get()
-        } else {
+        if (selectedRunConfiguration !is OdooRunConfiguration) {
             e.presentation.isVisible = false
             currentDBName = null
+            isRunning.set(false)
+            return
         }
+
+        val runningDescriptors = ExecutionManager.getInstance(project).getRunningDescriptors {
+            // Filter for run configurations that are currently running on the same database as specified in the currently selected run configuration
+            val configuration = it.configuration as? OdooRunConfiguration ?: return@getRunningDescriptors false
+            configuration.dbName == selectedRunConfiguration.dbName
+        }
+
+        // Update isRunning variable according to the currently running processes
+        if (isRunning.get() && runningDescriptors.isEmpty()) {
+            isRunning.set(false)
+        } else if (!isRunning.get() && runningDescriptors.isNotEmpty()) {
+            isRunning.set(true)
+        }
+
+        e.presentation.isVisible = true
+        currentDBName = selectedRunConfiguration.dbName
+        e.presentation.text = calcText(selectedRunConfiguration.dbName)
+
+        e.presentation.isEnabled = !isRunning.get()
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
