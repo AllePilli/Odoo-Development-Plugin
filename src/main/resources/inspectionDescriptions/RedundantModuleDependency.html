@@ -1,0 +1,13 @@
+<html>
+<body>
+<p>Reports redundant module declarations.</p>
+<p><b>Example:</b></p>
+<pre><code>
+{
+    'depends': ['account', 'account_reports'],
+}
+</code></pre>
+<p>In this example, the <code>account_reports</code> module already depends on the <code>account</code> module,
+    this means that declaring the <code>account</code> module has no effect.</p>
+</body>
+</html>

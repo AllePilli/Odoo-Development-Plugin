@@ -1,3 +1,5 @@
+import org.jetbrains.intellij.platform.gradle.TestFrameworkType
+
 plugins {
     id("java")
     id("org.jetbrains.kotlin.jvm") version "1.9.21"
@@ -22,13 +24,16 @@ repositories {
 dependencies {
     intellijPlatform {
         pycharmCommunity("2024.2")
-//        local(file("/home/odoo/.local/share/JetBrains/Toolbox/apps/pycharm-community")) // for using the local pycharm app
         jetbrainsRuntime()
         instrumentationTools()
 
         bundledPlugin("PythonCore")
         plugin("PsiViewer:242.4697")
+        testFramework(TestFrameworkType.Platform)
     }
+
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.opentest4j:opentest4j:1.3.0")
 }
 
 intellijPlatform {

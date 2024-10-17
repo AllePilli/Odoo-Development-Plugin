@@ -10,8 +10,8 @@ object StringsBundle {
     private val bundle = DynamicBundle(StringsBundle::class.java, STRINGS_BUNDLE)
 
     fun message(@PropertyKey(resourceBundle = STRINGS_BUNDLE) key: String, vararg params: Any): String =
-            bundle.getMessage(key, params)
+            bundle.getMessage(key, *params)
 
     fun messagePointer(@PropertyKey(resourceBundle = STRINGS_BUNDLE) key: String, vararg params: Any): Supplier<String> =
-            bundle.getLazyMessage(key, params)
+            bundle.getLazyMessage(key, *params)
 }
