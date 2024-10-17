@@ -71,6 +71,14 @@
                              id="com.github.allepilli.odoodevelopmentplugin.settings.general.GeneralSettingsConfigurable"/>
 
         <notificationGroup displayType="BALLOON" id="Odoo Balloon Group"/>
+
+        <localInspection language="Python"
+                         bundle="messages.StringsBundle"
+                         key="INSP.NAME.redundant.module.dependency"
+                         groupKey="INSP.GROUP.odoo"
+                         enabledByDefault="true"
+                         editorAttributes="NOT_USED_ELEMENT_ATTRIBUTES"
+                         implementationClass="com.github.allepilli.odoodevelopmentplugin.inspections.redundant_module_dependency.RedundantModuleDependencyInspection"/>
     </extensions>
 
     <extensions defaultExtensionNs="Pythonid">
