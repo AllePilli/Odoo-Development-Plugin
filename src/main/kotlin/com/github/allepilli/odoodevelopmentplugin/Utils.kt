@@ -1,5 +1,6 @@
 package com.github.allepilli.odoodevelopmentplugin
 
+import com.github.allepilli.odoodevelopmentplugin.settings.general.GeneralSettingsState
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.Project
@@ -7,6 +8,9 @@ import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.TextFieldWithBrowseButton
 import com.intellij.openapi.util.ThrowableComputable
+import com.intellij.openapi.util.io.toNioPathOrNull
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.ui.components.JBTextField
 import com.intellij.util.textCompletion.TextFieldWithCompletion
 import java.nio.charset.Charset
@@ -56,3 +60,12 @@ fun simpleCommandLine(command: String, workingDirectory: Path? = null): GeneralC
         GeneralCommandLine(command.split(simpleCommandLineDelimiterRgx))
                 .withCharset(utf8)
                 .withWorkingDirectory(workingDirectory)
+
+fun getModuleVirtualFile(project: Project, moduleName: String): VirtualFile? =
+        GeneralSettingsState.getInstance(project).addonPaths
+                .asSequence()
+                .mapNotNull {
+                    val modulePath = "$it/$moduleName".toNioPathOrNull()!!
+                    VirtualFileManager.getInstance().findFileByNioPath(modulePath)
+                }
+                .firstOrNull()
