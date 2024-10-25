@@ -83,6 +83,9 @@
 
     <extensions defaultExtensionNs="Pythonid">
         <pyClassMembersProvider implementation="com.github.allepilli.odoodevelopmentplugin.python.ModelMethodClassMemberProvider"/>
+
+        <unresolvedReferenceQuickFixProvider
+                implementation="com.github.allepilli.odoodevelopmentplugin.inspections.other_quickfixes.UnresolvedOdooModelNameReferenceQuickFixProvider"/>
     </extensions>
 
     <actions resource-bundle="messages.OdooActionsBundle">
