@@ -1,6 +1,7 @@
 package com.github.allepilli.odoodevelopmentplugin.indexes.module_dependency_index
 
 import com.github.allepilli.odoodevelopmentplugin.Constants
+import com.github.allepilli.odoodevelopmentplugin.extensions.isOdooModuleDirectory
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
@@ -23,7 +24,7 @@ class ModuleDependencyIndex: FileBasedIndexExtension<String, Set<String>>() {
     override fun getValueExternalizer(): DataExternalizer<Set<String>> = ModuleDependencyIndexValueExternalizer()
     override fun getInputFilter(): FileBasedIndex.InputFilter = object : DefaultFileTypeSpecificInputFilter(PythonFileType.INSTANCE) {
         override fun acceptInput(file: VirtualFile): Boolean =
-                file.nameWithoutExtension == Constants.MANIFEST_FILE_NAME
+                file.nameWithoutExtension == Constants.MANIFEST_FILE_NAME && file.parent.isOdooModuleDirectory()
     }
     override fun dependsOnFileContent(): Boolean = true
     override fun getVersion(): Int = 1

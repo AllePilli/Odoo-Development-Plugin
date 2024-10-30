@@ -1,8 +1,10 @@
 package com.github.allepilli.odoodevelopmentplugin.extensions
 
+import com.github.allepilli.odoodevelopmentplugin.flatMapNotNull
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ProjectLocator
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.isFile
 import java.io.File
@@ -46,4 +48,21 @@ fun VirtualFile.processAllFiles(fileType: FileType) = sequence<VirtualFile> {
         yieldAll(files.filter { it.fileType == fileType })
         dirs.addAllLast(childDirs)
     }
+}
+
+/**
+ * Checks if the virtual file is an odoo module directory. This function will only return true if the virtual file
+ * is a direct child directory of one of the configured addon paths.
+ * @param project the project to check inside, if null, this function will check inside all the projects this virtual file is part of
+ * @see Project.addonPaths
+ * @see ProjectLocator.getProjectsForFile
+ */
+fun VirtualFile.isOdooModuleDirectory(project: Project? = null): Boolean {
+    if (!isDirectory) return false
+    val addonPathsToCheck = project?.addonPaths ?: ProjectLocator.getInstance()
+            .getProjectsForFile(this)
+            .flatMapNotNull { it?.addonPaths }
+            .toSet()
+
+    return addonPathsToCheck.any { path -> canonicalPath == "$path${File.separatorChar}$name" }
 }
