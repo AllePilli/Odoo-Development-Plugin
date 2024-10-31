@@ -20,7 +20,7 @@ class ModelMethodCompletionContributor: BasicCompletionContributor<PsiElement>(M
         val module = parameters.originalPosition!!.containingFile.virtualFile.getContainingModule(pyClass.project) ?: return emptyList()
         val methods = pyClass.methods.mapNotNull { it.name }.toSet()
 
-        return InheritanceUtils.getAllInheritedMethods(pyClass.project, modelName, module)
+        return InheritanceUtils.getAllInheritedMethods(pyClass.project, modelName, module, pyClass)
                 .filter { it.name !in methods } // filter out methods that are already overridden in the class
                 .uniqueBy { it.name }
                 .map(LookupElementBuilder::createWithIcon)
