@@ -172,7 +172,7 @@ object OdooModelNameIndexUtil {
             moduleRoot: VirtualFile? = null,
             altScope: GlobalSearchScope = ProjectScope.getAllScope(project),
     ): List<PyClass> = computeReadAction {
-        val scope = if (moduleRoot != null) getModuleDependencyScope(project, moduleRoot)
+        val scope = if (moduleRoot != null) getModuleDependencyScope(project, moduleRoot).intersectWith(altScope)
                             else GlobalSearchScope.projectScope(project).intersectWith(altScope)
 
         val files = try {

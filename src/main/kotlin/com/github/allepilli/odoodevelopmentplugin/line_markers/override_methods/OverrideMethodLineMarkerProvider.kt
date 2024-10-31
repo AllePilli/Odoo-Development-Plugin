@@ -43,7 +43,7 @@ class OverrideMethodLineMarkerProvider: RelatedItemLineMarkerProvider(), DumbAwa
             } else null
 
             currentInheritedMethods = if (currentModelName != NOT_A_MODEL_NAME && currentModule != null) {
-                InheritanceUtils.getAllInheritedMethods(pyClass.project, currentModelName, currentModule!!)
+                InheritanceUtils.getAllInheritedMethods(pyClass.project, currentModelName, currentModule!!, pyClass)
             } else listOf()
         }
 

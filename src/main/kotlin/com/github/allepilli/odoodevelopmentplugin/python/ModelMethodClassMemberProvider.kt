@@ -25,7 +25,7 @@ class ModelMethodClassMemberProvider: PyClassMembersProviderBase() {
         val project = pyClass.project
         val contextModule = context.origin?.virtualFile?.getContainingModule(project) ?: return mutableListOf()
 
-        return InheritanceUtils.getAllInheritedMethods(project, modelName, contextModule)
+        return InheritanceUtils.getAllInheritedMethods(project, modelName, contextModule, pyClass)
                 .map { method -> PyCustomMember(method.name!!, method) }
                 .toMutableList()
     }

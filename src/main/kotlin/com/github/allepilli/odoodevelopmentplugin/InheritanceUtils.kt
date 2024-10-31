@@ -31,8 +31,8 @@ object InheritanceUtils {
         }
     }
 
-    fun getAllInheritedMethods(project: Project, modelName: String, contextModule: VirtualFile): List<PyFunction> =
-            getParentModels(project, contextModule, modelName, addonPaths = project.addonPaths).flatMap { parentClass ->
-                parentClass.methods.toList()
-            }
+    fun getAllInheritedMethods(project: Project, modelName: String, contextModule: VirtualFile, modelClass: PyClass): List<PyFunction> =
+            getParentModels(project, contextModule, modelName, addonPaths = project.addonPaths)
+                    .filterNot { it == modelClass }
+                    .flatMap { parentClass -> parentClass.methods.toList() }
 }
