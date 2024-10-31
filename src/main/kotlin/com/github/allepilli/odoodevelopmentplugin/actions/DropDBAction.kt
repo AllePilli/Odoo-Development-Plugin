@@ -1,8 +1,10 @@
 package com.github.allepilli.odoodevelopmentplugin.actions
 
 import com.github.allepilli.odoodevelopmentplugin.execution.OdooRunConfiguration
+import com.github.allepilli.odoodevelopmentplugin.execution.OdooRunType
 import com.github.allepilli.odoodevelopmentplugin.notifications.OdooBalloonNotifier
 import com.github.allepilli.odoodevelopmentplugin.services.CommandLineService
+import com.github.allepilli.odoodevelopmentplugin.settings.general.GeneralSettingsState
 import com.intellij.execution.ExecutionManager
 import com.intellij.execution.RunManager
 import com.intellij.ide.ActivityTracker
@@ -35,6 +37,7 @@ class DropDBAction: AnAction() {
 
     private var currentDBName: String? = null
     private var isRunning = AtomicBoolean(false)
+    private var selectedRunConfiguration: OdooRunConfiguration? = null
 
     override fun actionPerformed(e: AnActionEvent) {
         val project = e.project ?: return
@@ -56,9 +59,12 @@ class DropDBAction: AnAction() {
 
         if (output.trim() == "NOTICE:  database \"$dbName\" does not exist, skipping") {
             // DB does not exist
+
+            switchRunType(OdooRunType.INIT)
             notifier.notify("Database \"$dbName\" does not exist","Drop $dbName", NotificationType.ERROR)
         } else if (output.contains("database \"$dbName\" is being accessed by other users")) {
             // DB is being accessed
+
             DB_IS_ACCESSED_RGX.find(output.trim())
                     ?.groupValues
                     ?.drop(1)
@@ -66,8 +72,14 @@ class DropDBAction: AnAction() {
                     ?.let { content -> notifier.notify(content, "Drop $dbName", NotificationType.ERROR) }
         } else {
             // Success
+
+            switchRunType(OdooRunType.INIT)
             notifier.notify("Successfully dropped \"$dbName\"", type=NotificationType.INFORMATION)
         }
+    }
+
+    private fun switchRunType(runType: OdooRunType) {
+        selectedRunConfiguration?.runType = runType
     }
 
     override fun update(e: AnActionEvent) {
@@ -78,9 +90,7 @@ class DropDBAction: AnAction() {
                 ?.selectedConfiguration
                 ?: return
 
-        val selectedRunConfiguration = settings.configuration
-
-        if (selectedRunConfiguration !is OdooRunConfiguration) {
+        selectedRunConfiguration = settings.configuration as? OdooRunConfiguration ?: kotlin.run {
             e.presentation.isVisible = false
             currentDBName = null
             isRunning.set(false)
@@ -90,7 +100,7 @@ class DropDBAction: AnAction() {
         val runningDescriptors = ExecutionManager.getInstance(project).getRunningDescriptors {
             // Filter for run configurations that are currently running on the same database as specified in the currently selected run configuration
             val configuration = it.configuration as? OdooRunConfiguration ?: return@getRunningDescriptors false
-            configuration.dbName == selectedRunConfiguration.dbName
+            configuration.dbName == selectedRunConfiguration!!.dbName
         }
 
         // Update isRunning variable according to the currently running processes
@@ -101,8 +111,8 @@ class DropDBAction: AnAction() {
         }
 
         e.presentation.isVisible = true
-        currentDBName = selectedRunConfiguration.dbName
-        e.presentation.text = calcText(selectedRunConfiguration.dbName)
+        currentDBName = selectedRunConfiguration!!.dbName
+        e.presentation.text = calcText(selectedRunConfiguration!!.dbName)
 
         e.presentation.isEnabled = !isRunning.get()
     }
