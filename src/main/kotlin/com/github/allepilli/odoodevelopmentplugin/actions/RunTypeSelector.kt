@@ -12,7 +12,6 @@ import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.actionSystem.impl.Utils
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.serviceIfCreated
-import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.util.Disposer
@@ -27,7 +26,7 @@ import javax.swing.JComponent
 import javax.swing.ListCellRenderer
 import javax.swing.SwingConstants
 
-class RunTypeSelector: ToggleRunTypeAction(OdooRunType.entries.map { it.presentableName }), CustomComponentAction, DumbAware {
+class RunTypeSelector: ToggleRunTypeAction(OdooRunType.entries.map { it.presentableName }), CustomComponentAction {
     private var selectedRunConfiguration: OdooRunConfiguration? = null
 
     override fun onStateSelected(state: String) {
