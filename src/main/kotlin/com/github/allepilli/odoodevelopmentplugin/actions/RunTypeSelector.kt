@@ -7,6 +7,7 @@ import com.intellij.execution.actions.RunConfigurationsComboBoxAction
 import com.intellij.ide.IdeEventQueue
 import com.intellij.ide.ui.laf.darcula.ui.ToolbarComboWidgetUiSizes
 import com.intellij.openapi.actionSystem.*
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.actionSystem.impl.Utils
@@ -36,6 +37,8 @@ class RunTypeSelector: ToggleRunTypeAction(OdooRunType.entries.map { it.presenta
     override fun update(e: AnActionEvent) {
         super.update(e)
 
+        e.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
+
         val actionManager: ActionManager = ApplicationManager.getApplication().serviceIfCreated<ActionManager>() ?: return
         val runConfigurationAction = actionManager.getAction("RunConfiguration") as? RunConfigurationsComboBoxAction ?: return
         runConfigurationAction.update(e)
@@ -53,7 +56,6 @@ class RunTypeSelector: ToggleRunTypeAction(OdooRunType.entries.map { it.presenta
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
-    override fun displayTextInToolbar(): Boolean = true
     override fun createCustomComponent(presentation: Presentation, place: String): JComponent =
             object : ActionButtonWithText(this, presentation, place, { JBUI.size(16, JBUI.CurrentTheme.RunWidget.toolbarHeight()) }) {
                 private val marginInsets = JBInsets(0, 10, 0, 6)

@@ -12,6 +12,7 @@ import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
@@ -84,6 +85,8 @@ class DropDBAction: AnAction() {
 
     override fun update(e: AnActionEvent) {
         super.update(e)
+        e.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
+
         val project = e.project ?: return
 
         val settings = RunManager.getInstanceIfCreated(project)
@@ -118,5 +121,4 @@ class DropDBAction: AnAction() {
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
-    override fun displayTextInToolbar(): Boolean = true
 }
