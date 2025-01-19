@@ -2,7 +2,7 @@ import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 
 plugins {
     id("java")
-    id("org.jetbrains.kotlin.jvm") version "1.9.21"
+    id("org.jetbrains.kotlin.jvm") version "2.1.0"
     id("org.jetbrains.intellij.platform") version "2.1.0"
 }
 
@@ -23,7 +23,7 @@ repositories {
 // Read more version 2.x: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin.html
 dependencies {
     intellijPlatform {
-        pycharmCommunity("2024.2")
+        pycharmCommunity("2024.3")
         jetbrainsRuntime()
         instrumentationTools()
 
@@ -39,8 +39,8 @@ dependencies {
 intellijPlatform {
     pluginConfiguration {
         ideaVersion {
-            sinceBuild = "242"
-            untilBuild = "242.*"
+            sinceBuild = "243"
+            untilBuild = "243.*"
         }
     }
 
