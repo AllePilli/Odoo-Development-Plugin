@@ -79,6 +79,10 @@
                          enabledByDefault="true"
                          editorAttributes="NOT_USED_ELEMENT_ATTRIBUTES"
                          implementationClass="com.github.allepilli.odoodevelopmentplugin.inspections.redundant_module_dependency.RedundantModuleDependencyInspection"/>
+        
+        <searchScopesProvider implementation="com.github.allepilli.odoodevelopmentplugin.scopes.OdooScopesProvider"
+                              id="com.github.allepilli.odoodevelopmentplugin.scopes.OdooScopesProvider"
+                              order="last"/>
     </extensions>
 
     <extensions defaultExtensionNs="Pythonid">
