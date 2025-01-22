@@ -3,11 +3,11 @@ import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 plugins {
     id("java")
     id("org.jetbrains.kotlin.jvm") version "2.1.0"
-    id("org.jetbrains.intellij.platform") version "2.1.0"
+    id("org.jetbrains.intellij.platform") version "2.2.1"
 }
 
 group = "com.github.AllePilli"
-version = "1.0-SNAPSHOT"
+version = "0.1.0"
 
 repositories {
     mavenCentral()
@@ -25,7 +25,6 @@ dependencies {
     intellijPlatform {
         pycharmCommunity("2024.3")
         jetbrainsRuntime()
-        instrumentationTools()
 
         bundledPlugin("PythonCore")
         plugin("PsiViewer:242.4697")
