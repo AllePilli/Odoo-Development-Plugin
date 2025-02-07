@@ -1,12 +1,17 @@
 package com.github.allepilli.odoodevelopmentplugin.extensions
 
 import com.github.allepilli.odoodevelopmentplugin.flatMapNotNull
+import com.github.allepilli.odoodevelopmentplugin.xml.dom.odoo_data_file.dom_elements.OdooOpenerpData
+import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectLocator
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.isFile
+import com.intellij.psi.PsiManager
+import com.intellij.psi.xml.XmlFile
+import com.intellij.util.xml.DomManager
 import java.io.File
 
 fun VirtualFile.getContainingModuleName(addonPaths: List<String>): String? {
@@ -65,4 +70,20 @@ fun VirtualFile.isOdooModuleDirectory(project: Project? = null): Boolean {
             .toSet()
 
     return addonPathsToCheck.any { path -> canonicalPath == "$path${File.separatorChar}$name" }
+}
+
+fun VirtualFile.getRootElements(project: Project): List<OdooOpenerpData> {
+    if (!isDirectory) return emptyList()
+
+    val psiManager = PsiManager.getInstance(project)
+    val domManager = DomManager.getDomManager(project)
+
+    return getAllFiles(XmlFileType.INSTANCE)
+            .mapNotNull { psiManager.findFile(it) as? XmlFile? }
+            .mapNotNull { domManager.getFileElement(it, OdooOpenerpData::class.java)?.rootElement }
+}
+
+fun VirtualFile.getRelativePathInModule(project: Project): String? {
+    val modulePath = getContainingModule(project)?.canonicalPath ?: return null
+    return canonicalPath?.replaceFirst(modulePath, "")
 }

@@ -7,10 +7,13 @@ import com.github.allepilli.odoodevelopmentplugin.indexes.model_index.OdooModelN
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.*
+import com.intellij.psi.xml.XmlAttributeValue
 import com.jetbrains.python.PythonLanguage
 
 class ModelNameReference(psiElement: PsiElement, rangeInElement: TextRange, val canReferenceContainingClass: Boolean = true)
     : PsiReferenceBase<PsiElement>(psiElement, rangeInElement), PsiPolyVariantReference {
+        constructor(xmlAttributeValue: XmlAttributeValue)
+                : this(xmlAttributeValue, TextRange.allOf(xmlAttributeValue.value).shiftRight(1))
 
     override fun resolve(): PsiElement? = multiResolve(false).singleOrNull()?.element
     override fun multiResolve(isCompleteCode: Boolean): Array<ResolveResult> = buildArray {

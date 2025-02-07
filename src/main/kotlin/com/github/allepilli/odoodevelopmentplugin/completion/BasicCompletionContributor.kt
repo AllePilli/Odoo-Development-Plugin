@@ -11,12 +11,12 @@ import com.intellij.psi.PsiElement
 import com.intellij.util.ProcessingContext
 
 abstract class BasicCompletionContributor<T: PsiElement>(pattern: ElementPattern<T>): CompletionContributor() {
-    abstract fun getCompletions(parameters: CompletionParameters, context: ProcessingContext): List<LookupElement>
+    abstract fun getCompletions(parameters: CompletionParameters, context: ProcessingContext, resultSet: CompletionResultSet): List<LookupElement>
 
     init {
         extend(CompletionType.BASIC, pattern, object: CompletionProvider<CompletionParameters>() {
             override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, resultSet: CompletionResultSet) {
-                resultSet.addAllElements(getCompletions(parameters, context))
+                resultSet.addAllElements(getCompletions(parameters, context, resultSet))
             }
         })
     }

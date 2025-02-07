@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "com.github.AllePilli"
-version = "0.1.0"
+version = "0.2.2"
 
 repositories {
     mavenCentral()
@@ -27,7 +27,7 @@ dependencies {
         jetbrainsRuntime()
 
         bundledPlugin("PythonCore")
-        plugin("PsiViewer:242.4697")
+        bundledPlugin("com.intellij.dev")
         testFramework(TestFrameworkType.Platform)
     }
 
