@@ -110,6 +110,10 @@
         <platform.backend.documentation.psiTargetProvider
                 implementation="com.github.allepilli.odoodevelopmentplugin.documentation.OdooDomDocumentationTargetProvider"
                 id="com.github.allepilli.odoodevelopmentplugin.documentation.OdooDomDocumentationTargetProvider"/>
+
+        <xmlStructureViewBuilderProvider
+                implementation="com.github.allepilli.odoodevelopmentplugin.xml.dom.structure.OdooDomStructureViewBuilderProvider"
+                order="first"/>
     </extensions>
 
     <extensions defaultExtensionNs="Pythonid">
