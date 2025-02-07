@@ -1,6 +1,8 @@
 package com.github.allepilli.odoodevelopmentplugin.indexes.module_dependency_index
 
 import com.github.allepilli.odoodevelopmentplugin.Constants
+import com.github.allepilli.odoodevelopmentplugin.extensions.findOdooModule
+import com.github.allepilli.odoodevelopmentplugin.extensions.getContainingModule
 import com.github.allepilli.odoodevelopmentplugin.extensions.isOdooModuleDirectory
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.IndexNotReadyException
@@ -73,5 +75,17 @@ object ModuleDependencyIndexUtil {
             found.addAll(depends)
             found.removeAll(this)
         }
+    }
+
+    fun findAllDependenciesFiles(
+            project: Project,
+            file: VirtualFile,
+            isModule: Boolean = false,
+            scope: GlobalSearchScope = ProjectScope.getAllScope(project),
+    ): List<VirtualFile> {
+        val currentModule = if (!isModule) file.getContainingModule(project) ?: return emptyList() else file
+
+        return findAllDependencies(project, currentModule.name, scope)
+                .mapNotNull { dependencyName -> project.findOdooModule(dependencyName) }
     }
 }

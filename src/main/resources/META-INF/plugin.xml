@@ -23,6 +23,8 @@
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.python</depends>
+    <depends>Git4Idea</depends>
+    <depends>com.intellij.dev</depends>
 
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
@@ -34,9 +36,6 @@
         <fileBasedIndex implementation="com.github.allepilli.odoodevelopmentplugin.indexes.model_index.OdooModelNameIndex"/>
         <fileBasedIndex implementation="com.github.allepilli.odoodevelopmentplugin.indexes.module_dependency_index.ModuleDependencyIndex"/>
 
-        <psi.referenceContributor id="com.github.allepilli.odoodevelopmentplugin.references.xml.model_attribute.OdooDataFileModelAttributeReferenceContributor"
-                                  implementation="com.github.allepilli.odoodevelopmentplugin.references.xml.model_attribute.OdooDataFileModelAttributeReferenceContributor"
-                                  language="XML"/>
         <psi.referenceContributor id="com.github.allepilli.odoodevelopmentplugin.references.python.model_inherit_values.ModelInheritValuesContributor"
                                   implementation="com.github.allepilli.odoodevelopmentplugin.references.python.model_inherit_values.ModelInheritValuesContributor"
                                   language="Python"/>
@@ -64,6 +63,9 @@
         <completion.contributor language="Python"
                                 implementationClass="com.github.allepilli.odoodevelopmentplugin.completion.model_method_completion.ModelMethodCompletionContributor"
                                 order="last"/>
+        <completion.contributor language="XML"
+                                implementationClass="com.github.allepilli.odoodevelopmentplugin.completion.OdooXmlAttributeCompletionContributor"
+                                order="first"/>
 
         <projectConfigurable displayName="General Odoo Plugin Settings"
                              parentId="tools"
@@ -79,10 +81,35 @@
                          enabledByDefault="true"
                          editorAttributes="NOT_USED_ELEMENT_ATTRIBUTES"
                          implementationClass="com.github.allepilli.odoodevelopmentplugin.inspections.redundant_module_dependency.RedundantModuleDependencyInspection"/>
+
+        <localInspection language="XML"
+                         bundle="messages.StringsBundle"
+                         key="INSP.NAME.XML.basic.inspection"
+                         groupKey="INSP.GROUP.odoo"
+                         enabledByDefault="true"
+                         implementationClass="com.github.allepilli.odoodevelopmentplugin.inspections.BasicOdooXmlInspection"/>
         
         <searchScopesProvider implementation="com.github.allepilli.odoodevelopmentplugin.scopes.OdooScopesProvider"
                               id="com.github.allepilli.odoodevelopmentplugin.scopes.OdooScopesProvider"
                               order="last"/>
+
+        <dom.fileMetaData
+                implementation="com.github.allepilli.odoodevelopmentplugin.xml.dom.odoo_data_file.OdooDomFileDescription"
+                id="com.github.allepilli.odoodevelopmentplugin.xml.dom.odoo_data_file.OdooDomFileDescription"/>
+
+        <dom.implementation implementationClass="com.github.allepilli.odoodevelopmentplugin.xml.dom.odoo_data_file.implementations.OdooOpenerpDataImpl"
+                            interfaceClass="com.github.allepilli.odoodevelopmentplugin.xml.dom.odoo_data_file.dom_elements.OdooOpenerpData"/>
+        <dom.implementation implementationClass="com.github.allepilli.odoodevelopmentplugin.xml.dom.odoo_data_file.implementations.MarkupTypeFieldImpl"
+                            interfaceClass="com.github.allepilli.odoodevelopmentplugin.xml.dom.odoo_data_file.dom_elements.MarkupTypeField" />
+        <dom.implementation implementationClass="com.github.allepilli.odoodevelopmentplugin.xml.dom.odoo_data_file.implementations.TemplateImpl"
+                            interfaceClass="com.github.allepilli.odoodevelopmentplugin.xml.dom.odoo_data_file.dom_elements.Template"/>
+
+        <xml.tagNameProvider implementation="com.github.allepilli.odoodevelopmentplugin.xml.dom.odoo_data_file.OdooXmlTagNameProvider"
+                             id="com.github.allepilli.odoodevelopmentplugin.xml.dom.odoo_data_file.OdooXmlTagNameProvider"/>
+
+        <platform.backend.documentation.psiTargetProvider
+                implementation="com.github.allepilli.odoodevelopmentplugin.documentation.OdooDomDocumentationTargetProvider"
+                id="com.github.allepilli.odoodevelopmentplugin.documentation.OdooDomDocumentationTargetProvider"/>
     </extensions>
 
     <extensions defaultExtensionNs="Pythonid">
@@ -116,5 +143,10 @@
         <action class="com.github.allepilli.odoodevelopmentplugin.actions.OpenDBAction"
                 id="OpenDbAction"
                 icon="com.github.allepilli.odoodevelopmentplugin.OdooIcons.odoo"/>
+        <action id="com.github.allepilli.odoodevelopmentplugin.dev.TestDomApiAction"
+                class="com.github.allepilli.odoodevelopmentplugin.dev.TestDomApiAction"
+                text="Test Odoo XML Dom" description="Test the dom api">
+            <add-to-group group-id="Dev.PsiViewerActions" anchor="after" relative-to-action="PsiViewerForContext" />
+        </action>
     </actions>
 </idea-plugin>
