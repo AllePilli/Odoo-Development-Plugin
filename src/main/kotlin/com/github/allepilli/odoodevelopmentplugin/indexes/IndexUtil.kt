@@ -36,4 +36,7 @@ object IndexUtil {
      * @throws java.io.IOException
      */
     fun writeNullableString(record: DataOutput, string: String?) = DataInputOutputUtil.writeNullable(record, string) { str -> writeString(record, str) }
+
+    fun writeBoolean(record: DataOutput, boolean: Boolean) = DataInputOutputUtil.writeINT(record, if (boolean) 1 else 0)
+    fun readBoolean(record: DataInput) = DataInputOutputUtil.readINT(record) == 1
 }

@@ -1,6 +1,7 @@
 package com.github.allepilli.odoodevelopmentplugin.indexes.module_dependency_index
 
 import com.github.allepilli.odoodevelopmentplugin.Constants
+import com.github.allepilli.odoodevelopmentplugin.extensions.addonPaths
 import com.github.allepilli.odoodevelopmentplugin.extensions.findOdooModule
 import com.github.allepilli.odoodevelopmentplugin.extensions.getContainingModule
 import com.github.allepilli.odoodevelopmentplugin.extensions.isOdooModuleDirectory
@@ -8,6 +9,7 @@ import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.ProjectScope
 import com.intellij.util.indexing.*
@@ -87,5 +89,13 @@ object ModuleDependencyIndexUtil {
 
         return findAllDependencies(project, currentModule.name, scope)
                 .mapNotNull { dependencyName -> project.findOdooModule(dependencyName) }
+    }
+
+    fun findModuleByName(project: Project, moduleName: String): VirtualFile? = try {
+        val addonPaths = project.addonPaths
+        FilenameIndex.getVirtualFilesByName(moduleName, true, ProjectScope.getAllScope(project))
+                .firstOrNull { it.parent.path in addonPaths }
+    } catch (_: IndexNotReadyException) {
+        null
     }
 }
