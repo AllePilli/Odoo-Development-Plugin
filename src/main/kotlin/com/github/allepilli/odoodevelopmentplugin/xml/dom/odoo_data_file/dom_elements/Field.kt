@@ -1,14 +1,12 @@
 package com.github.allepilli.odoodevelopmentplugin.xml.dom.odoo_data_file.dom_elements
 
-import com.github.allepilli.odoodevelopmentplugin.xml.dom.odoo_data_file.converters.FloatConverter
-import com.github.allepilli.odoodevelopmentplugin.xml.dom.odoo_data_file.converters.IntConverter
-import com.github.allepilli.odoodevelopmentplugin.xml.dom.odoo_data_file.converters.ModelReferenceConverter
-import com.github.allepilli.odoodevelopmentplugin.xml.dom.odoo_data_file.converters.RecordReferenceConverter
+import com.github.allepilli.odoodevelopmentplugin.xml.dom.odoo_data_file.converters.*
 import com.github.allepilli.odoodevelopmentplugin.xml.dom.odoo_data_file.named_enums.TypeFieldValueEnum
 import com.intellij.util.xml.*
 
 interface Field: DomElement {
     @Required
+    @Referencing(SimpleFieldReferenceConverter::class)
     @Attribute("name")
     fun getName(): GenericAttributeValue<String>
 }

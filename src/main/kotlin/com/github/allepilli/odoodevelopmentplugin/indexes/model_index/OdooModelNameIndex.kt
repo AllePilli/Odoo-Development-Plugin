@@ -8,14 +8,13 @@ import com.github.allepilli.odoodevelopmentplugin.extensions.hasModelName
 import com.github.allepilli.odoodevelopmentplugin.flatMapNotNull
 import com.github.allepilli.odoodevelopmentplugin.indexes.module_dependency_index.ModuleDependencyIndexUtil
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectLocator
-import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
-import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.ProjectScope
 import com.intellij.util.Processor
@@ -29,15 +28,20 @@ import com.jetbrains.python.psi.PyClass
 import com.jetbrains.python.psi.PyFile
 import java.io.File
 
+private const val CACHE_SIZE = 2 * 1024
+
+// TODO take a look at CustomImplementationFileBasedIndexExtension
 class OdooModelNameIndex: FileBasedIndexExtension<String, OdooModelNameIndexItem>() {
     private val indexer = OdooModelNameIndexer()
 
     override fun getName(): ID<String, OdooModelNameIndexItem> = OdooModelNameIndexUtil.NAME
     override fun dependsOnFileContent(): Boolean = true
-    override fun getVersion(): Int = 2
+    override fun getVersion(): Int = 3
     override fun getIndexer(): DataIndexer<String, OdooModelNameIndexItem, FileContent> = indexer
     override fun getKeyDescriptor(): KeyDescriptor<String> = EnumeratorStringDescriptor.INSTANCE
     override fun getValueExternalizer(): DataExternalizer<OdooModelNameIndexItem> = OdooModelNameIndexItem.dataExternalizer
+    override fun getFileTypesWithSizeLimitNotApplicable(): MutableCollection<FileType> = mutableListOf(PythonFileType.INSTANCE)
+    override fun getCacheSize(): Int = CACHE_SIZE
 
     override fun getInputFilter(): FileBasedIndex.InputFilter =
             object: DefaultFileTypeSpecificInputFilter(PythonFileType.INSTANCE) {
@@ -88,20 +92,28 @@ object OdooModelNameIndexUtil {
         }
     }
 
+    fun getModelInfo(project: Project, modelName: String, moduleName: String): List<OdooModelNameIndexItem> {
+        val moduleVF = ModuleDependencyIndexUtil.findModuleByName(project, moduleName) ?: return emptyList()
+        val scope = GlobalSearchScope.FilesScope.filesScope(project, moduleVF.getAllFiles(PythonFileType.INSTANCE))
+
+        return try {
+            FileBasedIndex.getInstance().getValues(NAME, modelName, scope)
+        } catch (_: IndexNotReadyException) {
+            emptyList()
+        }
+    }
+
+    @Deprecated(
+            "A single module can have multiple models with the same name",
+            ReplaceWith("getModelInfo(project, modelName, moduleName)"),
+    )
     fun getModelInfo(
             project: Project,
             modelName: String,
             moduleName: String,
             addonPaths: List<String>,
     ): OdooModelNameIndexItem? {
-        val moduleVF = try {
-            FilenameIndex.getVirtualFilesByName(moduleName, true, ProjectScope.getAllScope(project))
-                    .firstOrNull { it.parent.path in addonPaths }
-        } catch (_: IndexNotReadyException) {
-            return null
-        }
-        if (moduleVF == null) return null
-
+        val moduleVF = ModuleDependencyIndexUtil.findModuleByName(project, moduleName) ?: return null
         val scope = GlobalSearchScope.FilesScope.filesScope(project, moduleVF.getAllFiles(PythonFileType.INSTANCE))
 
         return try {
@@ -148,23 +160,26 @@ object OdooModelNameIndexUtil {
     }
 
     /**
-     * Get the [PyClass] of the model with [modelName] in [module]
+     * Get the [PyClass]es of the model with [modelName] in module with [moduleName]
+     * A model can be defined/inherited multiple times in a single moduel
      */
-    fun getModel(modelName: String, module: String, project: Project): PyClass? = ReadAction.compute<PyClass?, RuntimeException>(ThrowableComputable {
-        val moduleVF = project.findOdooModule(module) ?: return@ThrowableComputable null
+    fun getModels(project: Project, modelName: String, moduleName: String): List<PyClass> = ReadAction.compute<List<PyClass>, RuntimeException> {
+        val moduleVF = project.findOdooModule(moduleName) ?: return@compute emptyList()
 
-        val modelVF = try {
+        val modelFiles = try {
             FileBasedIndex.getInstance().getContainingFiles(NAME, modelName, GlobalSearchScope.projectScope(project))
-                    .singleOrNull { virtualFile -> VfsUtil.isAncestor(moduleVF, virtualFile, true) }
-                    ?: return@ThrowableComputable null
+                    .filter { virtualFile -> VfsUtil.isAncestor(moduleVF, virtualFile, true) }
         } catch (_: IndexNotReadyException) {
-            return@ThrowableComputable null
+            return@compute emptyList()
         }
 
-        (PsiManager.getInstance(project).findFile(modelVF) as? PyFile)?.topLevelClasses?.firstOrNull { pyClass ->
-            pyClass.hasModelName(modelName)
+        val psiManager = PsiManager.getInstance(project)
+        modelFiles.mapNotNull { modelVF ->
+            (psiManager.findFile(modelVF) as? PyFile)?.topLevelClasses?.firstOrNull { pyClass ->
+                pyClass.hasModelName(modelName)
+            }
         }
-    })
+    }
 
     fun findModelsByName(
             project: Project,
