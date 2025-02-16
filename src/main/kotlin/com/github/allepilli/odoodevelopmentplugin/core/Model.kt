@@ -10,6 +10,9 @@ import com.github.allepilli.odoodevelopmentplugin.indexes.module_dependency_inde
 import com.intellij.openapi.project.Project
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
+import com.intellij.psi.util.parentOfType
+import com.jetbrains.python.psi.PyClass
+import com.jetbrains.python.psi.PyFunction
 
 /**
  * Represents an Odoo model, which is the result of loading different modules that add/override
@@ -32,8 +35,14 @@ class Model(project: Project, val name: String, val contextModuleName: String) {
     val methods: List<String>
         get() = myMethods.keys.toList()
 
-    val allMethodElements: List<SmartPsiElementPointer<*>>
-        get() = buildList { myMethods.values.forEach(::addAll) }
+    /**
+     * [rawMethodElements] are the Identifiers of the PyFunctions
+     */
+    val rawMethodElements: List<SmartPsiElementPointer<*>>
+        get() = myMethods.values.flatten()
+
+    val methodElements: List<PyFunction>
+        get() = rawMethodElements.mapNotNull { it.element?.parentOfType<PyFunction>(false) }
 
     init {
         load(project)
@@ -43,6 +52,10 @@ class Model(project: Project, val name: String, val contextModuleName: String) {
             .takeIf { it.isNotEmpty() }
     fun getMethod(name: String) = myMethods.getOrDefault(name, mutableListOf())
             .takeIf { it.isNotEmpty() }
+
+    fun getInheritedMethods(pyClass: PyClass): List<PyFunction> = methodElements.filter { pyFunction ->
+        pyClass != pyFunction.containingClass
+    }
 
     /**
      * Loads the model similar to how it gets loaded in odoo,

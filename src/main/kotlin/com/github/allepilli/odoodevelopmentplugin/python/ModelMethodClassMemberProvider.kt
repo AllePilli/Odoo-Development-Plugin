@@ -1,6 +1,6 @@
 package com.github.allepilli.odoodevelopmentplugin.python
 
-import com.github.allepilli.odoodevelopmentplugin.InheritanceUtils
+import com.github.allepilli.odoodevelopmentplugin.core.Model
 import com.github.allepilli.odoodevelopmentplugin.extensions.getContainingModule
 import com.github.allepilli.odoodevelopmentplugin.extensions.getModelName
 import com.intellij.psi.PsiElement
@@ -24,8 +24,9 @@ class ModelMethodClassMemberProvider: PyClassMembersProviderBase() {
         val modelName = pyClass.getModelName() ?: return mutableListOf()
         val project = pyClass.project
         val contextModule = context.origin?.virtualFile?.getContainingModule(project) ?: return mutableListOf()
+        val model = Model(project, modelName, contextModule.name)
 
-        return InheritanceUtils.getAllInheritedMethods(project, modelName, contextModule, pyClass)
+        return model.getInheritedMethods(pyClass)
                 .map { method -> PyCustomMember(method.name!!, method) }
                 .toMutableList()
     }

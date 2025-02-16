@@ -1,6 +1,6 @@
 package com.github.allepilli.odoodevelopmentplugin.line_markers.override_methods
 
-import com.github.allepilli.odoodevelopmentplugin.InheritanceUtils
+import com.github.allepilli.odoodevelopmentplugin.core.Model
 import com.github.allepilli.odoodevelopmentplugin.extensions.addonPaths
 import com.github.allepilli.odoodevelopmentplugin.extensions.getContainingModule
 import com.github.allepilli.odoodevelopmentplugin.extensions.getModelName
@@ -43,7 +43,10 @@ class OverrideMethodLineMarkerProvider: RelatedItemLineMarkerProvider(), DumbAwa
             } else null
 
             currentInheritedMethods = if (currentModelName != NOT_A_MODEL_NAME && currentModule != null) {
-                InheritanceUtils.getAllInheritedMethods(pyClass.project, currentModelName, currentModule!!, pyClass)
+                currentModule?.name?.let { moduleName ->
+                    val model = Model(pyClass.project, currentModelName, moduleName)
+                    model.getInheritedMethods(pyClass)
+                } ?: listOf()
             } else listOf()
         }
 
