@@ -13,6 +13,8 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.ui.components.JBTextField
 import com.intellij.util.textCompletion.TextFieldWithCompletion
+import com.jetbrains.python.psi.PyClass
+import com.jetbrains.python.psi.PyUtil
 import java.nio.charset.Charset
 import java.nio.file.Path
 import kotlin.reflect.KProperty

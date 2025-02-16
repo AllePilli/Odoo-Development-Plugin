@@ -19,6 +19,12 @@
         ]]>
     </description>
 
+    <change-notes>
+        <![CDATA[
+            - Add support for simple (ex. `'move_type'`) field references and completion in `@api.constrains` wrapper and field names in data files.
+        ]]>
+    </change-notes>
+
     <!-- Product and plugin compatibility requirements.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
     <depends>com.intellij.modules.platform</depends>
