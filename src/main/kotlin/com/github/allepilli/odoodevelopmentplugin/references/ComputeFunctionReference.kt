@@ -11,6 +11,7 @@ import com.intellij.openapi.vfs.originalFile
 import com.intellij.psi.*
 import com.intellij.psi.util.parentOfType
 import com.jetbrains.python.psi.PyClass
+import com.jetbrains.python.psi.PyFunction
 import com.jetbrains.python.psi.PyStringLiteralExpression
 import com.jetbrains.python.psi.PyStringLiteralUtil
 import com.jetbrains.python.psi.types.TypeEvalContext
@@ -33,8 +34,7 @@ class ComputeFunctionReference(element: PyStringLiteralExpression, rangeInElemen
 
         val model = Model(pyClass.project, modelName, moduleName)
 
-        return model.getMethod(functionName)
-                ?.mapNotNull { it.element }
+        return model.getMethodFunction(functionName)
                 ?.map(::PsiElementResolveResult)
                 ?.toTypedArray()
                 ?: emptyArray()

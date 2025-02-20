@@ -42,7 +42,7 @@ class Model(project: Project, val name: String, val contextModuleName: String) {
         get() = myMethods.values.flatten()
 
     val methodElements: List<PyFunction>
-        get() = rawMethodElements.mapNotNull { it.element?.parentOfType<PyFunction>(false) }
+        get() = rawMethodElements.mapNotNull { it.getPyFunction() }
 
     init {
         load(project)
@@ -52,6 +52,9 @@ class Model(project: Project, val name: String, val contextModuleName: String) {
             .takeIf { it.isNotEmpty() }
     fun getMethod(name: String) = myMethods.getOrDefault(name, mutableListOf())
             .takeIf { it.isNotEmpty() }
+    fun getMethodFunction(name: String) = getMethod(name)?.mapNotNull { it.getPyFunction() }
+
+    private fun SmartPsiElementPointer<*>.getPyFunction() = element?.parentOfType<PyFunction>(false)
 
     fun getInheritedMethods(pyClass: PyClass): List<PyFunction> = methodElements.filter { pyFunction ->
         pyClass != pyFunction.containingClass
