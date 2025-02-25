@@ -72,6 +72,9 @@
         <completion.contributor language="Python"
                                 implementationClass="com.github.allepilli.odoodevelopmentplugin.completion.model_method_completion.ModelMethodCompletionContributor"
                                 order="last"/>
+        <completion.contributor language="Python"
+                                implementationClass="com.github.allepilli.odoodevelopmentplugin.completion.self_env_method_completion.SelfEnvMethodCompletionContributor"
+                                order="last"/>
         <completion.contributor language="XML"
                                 implementationClass="com.github.allepilli.odoodevelopmentplugin.completion.OdooXmlAttributeCompletionContributor"
                                 order="first"/>
