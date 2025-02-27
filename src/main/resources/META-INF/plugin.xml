@@ -131,6 +131,8 @@
     <extensions defaultExtensionNs="Pythonid">
         <pyClassMembersProvider implementation="com.github.allepilli.odoodevelopmentplugin.python.ModelMethodClassMemberProvider"/>
 
+        <importResolver implementation="com.github.allepilli.odoodevelopmentplugin.python.OdooAddonsImportResolver" />
+
         <unresolvedReferenceQuickFixProvider
                 implementation="com.github.allepilli.odoodevelopmentplugin.inspections.other_quickfixes.UnresolvedOdooModelNameReferenceQuickFixProvider"/>
     </extensions>
