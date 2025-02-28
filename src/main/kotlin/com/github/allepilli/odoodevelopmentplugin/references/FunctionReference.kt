@@ -11,12 +11,11 @@ import com.intellij.openapi.vfs.originalFile
 import com.intellij.psi.*
 import com.intellij.psi.util.parentOfType
 import com.jetbrains.python.psi.PyClass
-import com.jetbrains.python.psi.PyFunction
 import com.jetbrains.python.psi.PyStringLiteralExpression
 import com.jetbrains.python.psi.PyStringLiteralUtil
 import com.jetbrains.python.psi.types.TypeEvalContext
 
-class ComputeFunctionReference(element: PyStringLiteralExpression, rangeInElement: TextRange?) : PsiReferenceBase<PyStringLiteralExpression>(element, rangeInElement), PsiPolyVariantReference {
+class FunctionReference(element: PyStringLiteralExpression, rangeInElement: TextRange?) : PsiReferenceBase<PyStringLiteralExpression>(element, rangeInElement), PsiPolyVariantReference {
     override fun resolve(): PsiElement? = multiResolve(false).singleOrNull()?.element
     override fun multiResolve(isCompleteCode: Boolean): Array<ResolveResult> {
         val pyClass = element.parentOfType<PyClass>() ?: return emptyArray()

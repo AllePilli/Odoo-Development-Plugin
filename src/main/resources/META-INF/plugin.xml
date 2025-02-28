@@ -51,8 +51,8 @@
         <psi.referenceContributor id="com.github.allepilli.odoodevelopmentplugin.references.python.model_in_comodel_args.ModelInComodelArgsContributor"
                                   implementation="com.github.allepilli.odoodevelopmentplugin.references.python.model_in_comodel_args.ModelInComodelArgsContributor"
                                   language="Python"/>
-        <psi.referenceContributor id="com.github.allepilli.odoodevelopmentplugin.references.python.compute_function.ComputeFunctionContributor"
-                                  implementation="com.github.allepilli.odoodevelopmentplugin.references.python.compute_function.ComputeFunctionContributor"
+        <psi.referenceContributor id="com.github.allepilli.odoodevelopmentplugin.references.python.field_keywordarg_function_reference.FieldKeywordArgFunctionReferenceContributor"
+                                  implementation="com.github.allepilli.odoodevelopmentplugin.references.python.field_keywordarg_function_reference.FieldKeywordArgFunctionReferenceContributor"
                                   language="Python"/>
         <psi.referenceContributor id="com.github.allepilli.odoodevelopmentplugin.references.python.manifest_module_dependency.ManifestModuleDependencyContributor"
                                   implementation="com.github.allepilli.odoodevelopmentplugin.references.python.manifest_module_dependency.ManifestModuleDependencyContributor"
