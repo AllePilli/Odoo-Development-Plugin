@@ -1,6 +1,7 @@
 package com.github.allepilli.odoodevelopmentplugin.references.python.field_keywordarg_function_reference
 
 import com.github.allepilli.odoodevelopmentplugin.references.FunctionReference
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReference
@@ -45,6 +46,8 @@ private val fieldTypes = setOf(
         "Id",
 )
 
+private val IS_FIELD_ARG_LIST_KEY = Key.create<Boolean>("odoo_development_plugin_is_field_arg_list_key")
+
 class FieldKeywordArgFunctionReferenceProvider: PsiReferenceProvider() {
     override fun getReferencesByElement(psiElement: PsiElement, context: ProcessingContext): Array<PsiReference> {
         if (!isKeywordArgInFieldDefinition(psiElement)) return emptyArray()
@@ -63,6 +66,8 @@ class FieldKeywordArgFunctionReferenceProvider: PsiReferenceProvider() {
 
     private fun isKeywordArgInFieldDefinition(psiElement: PsiElement): Boolean {
         val argumentList = psiElement.parentOfType<PyArgumentList>() ?: return false
+        val isFieldArgList = argumentList.getUserData(IS_FIELD_ARG_LIST_KEY)
+        if (isFieldArgList != null) return isFieldArgList
 
         val referenceExpr = argumentList.prevSibling
                 ?.let { it as? PyReferenceExpression }
@@ -78,11 +83,15 @@ class FieldKeywordArgFunctionReferenceProvider: PsiReferenceProvider() {
 
         val typeEvalContext = TypeEvalContext.codeCompletion(psiElement.project, psiElement.containingFile)
 
-        return "odoo.fields.Field" == fieldClass.getType(typeEvalContext)
+        val isKeywordArgInField = "odoo.fields.Field" == fieldClass.getType(typeEvalContext)
                 ?.getAncestorTypes(typeEvalContext)
                 ?.filterIsInstance<PyClassType>()
                 ?.dropLast(1) // Drop PyClassType: object
                 ?.lastOrNull()
                 ?.classQName
+
+        argumentList.putUserData(IS_FIELD_ARG_LIST_KEY, isKeywordArgInField)
+
+        return isKeywordArgInField
     }
 }
