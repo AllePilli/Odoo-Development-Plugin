@@ -21,7 +21,8 @@
 
     <change-notes>
         <![CDATA[
-            - Add support for simple (ex. `'move_type'`) field references and completion in `@api.constrains` wrapper and field names in data files.
+            Version 2.6:
+                - Add run configurations for odoo test files.
         ]]>
     </change-notes>
 

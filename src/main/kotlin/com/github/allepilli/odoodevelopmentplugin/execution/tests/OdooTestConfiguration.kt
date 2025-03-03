@@ -1,5 +1,6 @@
-package com.github.allepilli.odoodevelopmentplugin.execution
+package com.github.allepilli.odoodevelopmentplugin.execution.tests
 
+import com.github.allepilli.odoodevelopmentplugin.execution.*
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.ConfigurationType
@@ -13,8 +14,7 @@ import com.jetbrains.python.PythonFileType
 import com.jetbrains.python.run.AbstractPythonRunConfiguration
 import java.io.File
 
-// TODO make a common super class for OdooConfigurations and add interfaces like HasDbName?
-class OdooRunConfiguration(project: Project, factory: ConfigurationFactory) : AbstractPythonRunConfiguration<OdooRunConfiguration>(project, factory) {
+class OdooTestConfiguration(project: Project, factory: ConfigurationFactory) : AbstractPythonRunConfiguration<OdooTestConfiguration>(project, factory) {
     init {
         setUnbufferedEnv()
     }
@@ -37,9 +37,24 @@ class OdooRunConfiguration(project: Project, factory: ConfigurationFactory) : Ab
     var otherOptions: String
         get() = options.otherOptions ?: ""
         set(value) { options.otherOptions = value }
+    var tag: String
+        get() = options.tag ?: ""
+        set(value) { options.tag = value }
+    var testModule: String
+        get() = options.testModule ?: ""
+        set(value) { options.testModule = value }
+    var testClass: String
+        get() = options.testClass ?: ""
+        set(value) { options.testClass = value }
+    var testMethod: String
+        get() = options.testMethod ?: ""
+        set(value) { options.testMethod = value }
+    var stopAfterInit: Boolean
+        get() = options.stopAfterInit
+        set(value) { options.stopAfterInit = value }
 
-    override fun getOptions(): OdooRunConfigurationOptions = super.getOptions() as OdooRunConfigurationOptions
-    override fun createConfigurationEditor(): SettingsEditor<OdooRunConfiguration> = OdooRunConfigurationSettingsEditor(project)
+    override fun getOptions(): OdooTestConfigurationOptions = super.getOptions() as OdooTestConfigurationOptions
+    override fun createConfigurationEditor(): SettingsEditor<OdooTestConfiguration> = OdooTestConfigurationSettingsEditor(project)
     override fun getState(executor: Executor, env: ExecutionEnvironment): RunProfileState = OdooRunCommandLineState(this, env)
     override fun getType(): ConfigurationType = OdooConfigurationType.Util.getInstance()
     override fun checkConfiguration() {

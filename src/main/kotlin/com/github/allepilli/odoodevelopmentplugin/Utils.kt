@@ -11,10 +11,9 @@ import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.util.io.toNioPathOrNull
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextField
 import com.intellij.util.textCompletion.TextFieldWithCompletion
-import com.jetbrains.python.psi.PyClass
-import com.jetbrains.python.psi.PyUtil
 import java.nio.charset.Charset
 import java.nio.file.Path
 import kotlin.reflect.KProperty
@@ -51,6 +50,11 @@ class TextFieldWithBrowseButtonValue(private val textField: TextFieldWithBrowseB
 class ComboBoxValue<E>(private val comboBox: ComboBox<E>?, private val defaultValue: E) {
     operator fun getValue(thisRef: Any?, property: KProperty<*>): E = comboBox?.item ?: defaultValue
     operator fun setValue(thisRef: Any?, property: KProperty<*>, value: E) { comboBox?.item = value }
+}
+
+class CheckBoxValue(private val checkBox: JBCheckBox?) {
+    operator fun getValue(thisRef: Any?, property: KProperty<*>): Boolean = checkBox?.isSelected ?: false
+    operator fun setValue(thisRef: Any?, property: KProperty<*>, value: Boolean) { checkBox?.isSelected = value }
 }
 
 fun <T> computeReadAction(computable: () -> T): T = ReadAction.compute<T, RuntimeException>(ThrowableComputable(computable))

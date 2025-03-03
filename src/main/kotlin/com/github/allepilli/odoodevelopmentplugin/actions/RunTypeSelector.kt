@@ -2,8 +2,10 @@ package com.github.allepilli.odoodevelopmentplugin.actions
 
 import com.github.allepilli.odoodevelopmentplugin.execution.OdooRunConfiguration
 import com.github.allepilli.odoodevelopmentplugin.execution.OdooRunType
+import com.github.allepilli.odoodevelopmentplugin.execution.tests.OdooTestConfiguration
 import com.intellij.execution.RunManager
 import com.intellij.execution.actions.RunConfigurationsComboBoxAction
+import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.ide.IdeEventQueue
 import com.intellij.ide.ui.laf.darcula.ui.ToolbarComboWidgetUiSizes
 import com.intellij.openapi.actionSystem.*
@@ -28,10 +30,23 @@ import javax.swing.ListCellRenderer
 import javax.swing.SwingConstants
 
 class RunTypeSelector: ToggleRunTypeAction(OdooRunType.entries.map { it.presentableName }), CustomComponentAction {
-    private var selectedRunConfiguration: OdooRunConfiguration? = null
+    private var selectedRunConfiguration: RunConfiguration? = null
+    private var selectedRunType: OdooRunType?
+        get() = when (selectedRunConfiguration) {
+            is OdooRunConfiguration -> (selectedRunConfiguration as? OdooRunConfiguration)?.runType
+            is OdooTestConfiguration -> (selectedRunConfiguration as? OdooTestConfiguration)?.runType
+            else -> null
+        }
+        set(value) {
+            if (value == null) return
+            when (selectedRunConfiguration) {
+                is OdooRunConfiguration -> (selectedRunConfiguration as? OdooRunConfiguration)?.runType = value
+                is OdooTestConfiguration -> (selectedRunConfiguration as? OdooTestConfiguration)?.runType = value
+            }
+        }
 
     override fun onStateSelected(state: String) {
-        selectedRunConfiguration?.runType = OdooRunType.entries.first { it.presentableName == state }
+        selectedRunType = OdooRunType.entries.first { it.presentableName == state }
     }
 
     override fun update(e: AnActionEvent) {
@@ -44,10 +59,10 @@ class RunTypeSelector: ToggleRunTypeAction(OdooRunType.entries.map { it.presenta
         runConfigurationAction.update(e)
 
         e.project?.let { RunManager.getInstanceIfCreated(it) }?.selectedConfiguration?.configuration?.let { configuration ->
-            if (configuration is OdooRunConfiguration) {
+            if (configuration is OdooRunConfiguration || configuration is OdooTestConfiguration) {
                 e.presentation.isVisible = true
                 selectedRunConfiguration = configuration
-                selectedState = configuration.runType.presentableName
+                selectedState = selectedRunType?.presentableName ?: ""
             } else {
                 e.presentation.isVisible = false
                 selectedRunConfiguration = null
