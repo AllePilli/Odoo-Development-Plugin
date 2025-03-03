@@ -1,5 +1,6 @@
 package com.github.allepilli.odoodevelopmentplugin.execution
 
+import com.github.allepilli.odoodevelopmentplugin.execution.tests.OdooTestConfiguration
 import com.github.allepilli.odoodevelopmentplugin.settings.general.GeneralSettingsState
 import com.intellij.execution.DefaultExecutionResult
 import com.intellij.execution.ExecutionResult
@@ -26,7 +27,7 @@ import java.nio.file.Path
 import java.util.function.Function
 
 @Suppress("UnstableApiUsage")
-class OdooRunCommandLineState(private val runConfiguration: OdooRunConfiguration, env: ExecutionEnvironment?) : PythonCommandLineState(runConfiguration, env) {
+class OdooRunCommandLineState<T: AbstractPythonRunConfiguration<T>>(private val runConfiguration: T, env: ExecutionEnvironment?) : PythonCommandLineState(runConfiguration, env) {
     companion object {
         private const val TERM_COLOR_STRING = "xterm-256color"
         private val termColorFunction = object : TraceableTargetEnvironmentFunction<String>() {
@@ -42,37 +43,90 @@ class OdooRunCommandLineState(private val runConfiguration: OdooRunConfiguration
 
     override fun buildPythonExecution(helpersAwareRequest: HelpersAwareTargetEnvironmentRequest): PythonExecution =
             PythonScriptExecution().apply {
-                val odooBin = File(runConfiguration.odooBinPath)
-                pythonScriptPath = getTargetPath(helpersAwareRequest.targetEnvironmentRequest, Path.of(odooBin.absolutePath))
-                workingDir = getPythonExecutionWorkingDir(helpersAwareRequest.targetEnvironmentRequest)
-
-                val addonPaths = GeneralSettingsState.getInstance(runConfiguration.project)
-                        .addonPaths
-                        .filterNot { it.endsWith("odoo/odoo/addons") } // odoo core modules should not be added to the run config
-                        .toMutableList()
-
-                runConfiguration.addonsPaths
-                        .split(',')
-                        .filter { runConfigAddonPath -> addonPaths.none { it.endsWith(runConfigAddonPath) } }
-                        .forEach {
-                            addonPaths.add("${runConfiguration.project.basePath}/$it")
-                        }
-
-                addParameter("--addons-path=${addonPaths.joinToString(separator = ",")}")
-                addParameters("--database", runConfiguration.dbName)
-
-                when (runConfiguration.runType) {
-                    OdooRunType.INIT -> addParameter("-i")
-                    OdooRunType.UPDATE -> addParameter("-u")
-                    OdooRunType.NONE -> throw IllegalStateException("Odoo run type should not be of type NONE")
+                when (runConfiguration) {
+                    is OdooRunConfiguration -> buildOdooRunCommand(runConfiguration, helpersAwareRequest)
+                    is OdooTestConfiguration -> buildOdooTestCommand(runConfiguration, helpersAwareRequest)
                 }
-                addParameter(runConfiguration.odooModules)
-
-                val otherOptions = runConfiguration.otherOptions.trim()
-                if (otherOptions.isNotEmpty()) addParameters(otherOptions.split(' '))
 
                 charset = EncodingProjectManager.getInstance(runConfiguration.project).defaultCharset
             }
+
+    private fun PythonScriptExecution.buildOdooRunCommand(runConfiguration: OdooRunConfiguration, helpersAwareRequest: HelpersAwareTargetEnvironmentRequest) {
+        val odooBin = File(runConfiguration.odooBinPath)
+        pythonScriptPath = getTargetPath(helpersAwareRequest.targetEnvironmentRequest, Path.of(odooBin.absolutePath))
+        workingDir = getPythonExecutionWorkingDir(helpersAwareRequest.targetEnvironmentRequest)
+
+        val addonPaths = GeneralSettingsState.getInstance(runConfiguration.project)
+                .addonPaths
+                .filterNot { it.endsWith("odoo/odoo/addons") } // odoo core modules should not be added to the run config
+                .toMutableList()
+
+        runConfiguration.addonsPaths
+                .split(',')
+                .filter { runConfigAddonPath -> addonPaths.none { it.endsWith(runConfigAddonPath) } }
+                .forEach {
+                    addonPaths.add("${runConfiguration.project.basePath}/$it")
+                }
+
+        addParameter("--addons-path=${addonPaths.joinToString(separator = ",")}")
+        addParameters("--database", runConfiguration.dbName)
+
+        when (runConfiguration.runType) {
+            OdooRunType.INIT -> addParameter("-i")
+            OdooRunType.UPDATE -> addParameter("-u")
+            OdooRunType.NONE -> throw IllegalStateException("Odoo run type should not be of type NONE")
+        }
+        addParameter(runConfiguration.odooModules)
+
+        val otherOptions = runConfiguration.otherOptions.trim()
+        if (otherOptions.isNotEmpty()) addParameters(otherOptions.split(' '))
+    }
+
+    private fun PythonScriptExecution.buildOdooTestCommand(runConfiguration: OdooTestConfiguration, helpersAwareRequest: HelpersAwareTargetEnvironmentRequest) {
+        val odooBin = File(runConfiguration.odooBinPath)
+        pythonScriptPath = getTargetPath(helpersAwareRequest.targetEnvironmentRequest, Path.of(odooBin.absolutePath))
+        workingDir = getPythonExecutionWorkingDir(helpersAwareRequest.targetEnvironmentRequest)
+
+        val addonPaths = GeneralSettingsState.getInstance(runConfiguration.project)
+                .addonPaths
+                .filterNot { it.endsWith("odoo/odoo/addons") } // odoo core modules should not be added to the run config
+                .toMutableList()
+
+        runConfiguration.addonsPaths
+                .split(',')
+                .filter { runConfigAddonPath -> addonPaths.none { it.endsWith(runConfigAddonPath) } }
+                .forEach {
+                    addonPaths.add("${runConfiguration.project.basePath}/$it")
+                }
+
+        addParameter("--addons-path=${addonPaths.joinToString(separator = ",")}")
+        addParameters("--database", runConfiguration.dbName)
+
+        when (runConfiguration.runType) {
+            OdooRunType.INIT -> addParameter("-i")
+            OdooRunType.UPDATE -> addParameter("-u")
+            OdooRunType.NONE -> throw IllegalStateException("Odoo run type should not be of type NONE")
+        }
+        addParameter(runConfiguration.odooModules)
+
+        val testTagsString = buildString {
+            if (runConfiguration.tag.isNotEmpty()) append(runConfiguration.tag)
+            if (runConfiguration.testModule.isNotEmpty()) append("/${runConfiguration.testModule}")
+            if (runConfiguration.testClass.isNotEmpty()) append(":${runConfiguration.testClass}")
+            if (runConfiguration.testMethod.isNotEmpty()) append(".${runConfiguration.testMethod}")
+        }.trim()
+
+        if (testTagsString.isNotEmpty()) {
+            addParameter("--test-tags=$testTagsString")
+        }
+
+        if (runConfiguration.stopAfterInit) {
+            addParameter("--stop-after-init")
+        }
+
+        val otherOptions = runConfiguration.otherOptions.trim()
+        if (otherOptions.isNotEmpty()) addParameters(otherOptions.split(' '))
+    }
 
     private fun executeWithCMDEmulation(processHandler: ProcessHandler): ExecutionResult {
         val executeConsole = createTerminalExecutionConsole(runConfiguration.project, processHandler)

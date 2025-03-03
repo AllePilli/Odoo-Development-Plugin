@@ -2,11 +2,12 @@ package com.github.allepilli.odoodevelopmentplugin.actions
 
 import com.github.allepilli.odoodevelopmentplugin.execution.OdooRunConfiguration
 import com.github.allepilli.odoodevelopmentplugin.execution.OdooRunType
+import com.github.allepilli.odoodevelopmentplugin.execution.tests.OdooTestConfiguration
 import com.github.allepilli.odoodevelopmentplugin.notifications.OdooBalloonNotifier
 import com.github.allepilli.odoodevelopmentplugin.services.CommandLineService
-import com.github.allepilli.odoodevelopmentplugin.settings.general.GeneralSettingsState
 import com.intellij.execution.ExecutionManager
 import com.intellij.execution.RunManager
+import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.ide.ActivityTracker
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -38,7 +39,20 @@ class DropDBAction: AnAction() {
 
     private var currentDBName: String? = null
     private var isRunning = AtomicBoolean(false)
-    private var selectedRunConfiguration: OdooRunConfiguration? = null
+    private var selectedRunConfiguration: RunConfiguration? = null
+    private var selectedDbName: String?
+        get() = when (selectedRunConfiguration) {
+            is OdooRunConfiguration -> (selectedRunConfiguration as? OdooRunConfiguration)?.dbName
+            is OdooTestConfiguration -> (selectedRunConfiguration as? OdooTestConfiguration)?.dbName
+            else -> null
+        }
+        set(value) {
+            if (value == null) return
+            when (selectedRunConfiguration) {
+                is OdooRunConfiguration -> (selectedRunConfiguration as? OdooRunConfiguration)?.dbName = value
+                is OdooTestConfiguration -> (selectedRunConfiguration as? OdooTestConfiguration)?.dbName = value
+            }
+        }
 
     override fun actionPerformed(e: AnActionEvent) {
         val project = e.project ?: return
@@ -80,7 +94,10 @@ class DropDBAction: AnAction() {
     }
 
     private fun switchRunType(runType: OdooRunType) {
-        selectedRunConfiguration?.runType = runType
+        when (selectedRunConfiguration) {
+            is OdooRunConfiguration -> (selectedRunConfiguration as? OdooRunConfiguration)?.runType = runType
+            is OdooTestConfiguration -> (selectedRunConfiguration as? OdooTestConfiguration)?.runType = runType
+        }
     }
 
     override fun update(e: AnActionEvent) {
@@ -93,7 +110,8 @@ class DropDBAction: AnAction() {
                 ?.selectedConfiguration
                 ?: return
 
-        selectedRunConfiguration = settings.configuration as? OdooRunConfiguration ?: kotlin.run {
+        selectedRunConfiguration = settings.configuration
+        if (selectedRunConfiguration !is OdooRunConfiguration && selectedRunConfiguration !is OdooTestConfiguration) {
             e.presentation.isVisible = false
             currentDBName = null
             isRunning.set(false)
@@ -102,8 +120,11 @@ class DropDBAction: AnAction() {
 
         val runningDescriptors = ExecutionManager.getInstance(project).getRunningDescriptors {
             // Filter for run configurations that are currently running on the same database as specified in the currently selected run configuration
-            val configuration = it.configuration as? OdooRunConfiguration ?: return@getRunningDescriptors false
-            configuration.dbName == selectedRunConfiguration!!.dbName
+            when (val configuration = it.configuration) {
+                is OdooRunConfiguration -> configuration.dbName == (selectedDbName ?: "")
+                is OdooTestConfiguration -> configuration.dbName == (selectedDbName ?: "")
+                else -> false
+            }
         }
 
         // Update isRunning variable according to the currently running processes
@@ -114,8 +135,8 @@ class DropDBAction: AnAction() {
         }
 
         e.presentation.isVisible = true
-        currentDBName = selectedRunConfiguration!!.dbName
-        e.presentation.text = calcText(selectedRunConfiguration!!.dbName)
+        currentDBName = selectedDbName ?: ""
+        e.presentation.text = calcText(selectedDbName ?: "")
 
         e.presentation.isEnabled = !isRunning.get()
     }

@@ -1,6 +1,7 @@
 package com.github.allepilli.odoodevelopmentplugin.execution
 
 import com.github.allepilli.odoodevelopmentplugin.OdooIcons
+import com.github.allepilli.odoodevelopmentplugin.execution.tests.OdooTestConfigurationFactory
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.ConfigurationType
 import com.intellij.execution.configurations.ConfigurationTypeUtil
@@ -16,5 +17,6 @@ class OdooConfigurationType: ConfigurationType {
     override fun getConfigurationTypeDescription(): String = "Run configurations for Odoo development"
     override fun getIcon(): Icon = OdooIcons.odoo
     override fun getId(): String = "OdooConfigurationType"
-    override fun getConfigurationFactories(): Array<ConfigurationFactory> = arrayOf(OdooRunConfigurationFactory())
+    override fun getConfigurationFactories(): Array<ConfigurationFactory> =
+            arrayOf(OdooRunConfigurationFactory(), OdooTestConfigurationFactory())
 }
