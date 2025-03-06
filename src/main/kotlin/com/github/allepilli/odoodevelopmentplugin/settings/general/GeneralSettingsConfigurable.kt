@@ -16,10 +16,20 @@ class GeneralSettingsConfigurable(private val project: Project): Configurable {
     }
 
     override fun isModified(): Boolean = settingsComponent?.addonPaths != settingsState.addonPaths
+            || settingsComponent?.defaultOdooBinPath != settingsState.defaultOdooBinPath
+            || settingsComponent?.defaultTestDbName != settingsState.defaultTestDbName
 
-    override fun apply() { settingsState.addonPaths = settingsComponent?.addonPaths ?: emptyList() }
+    override fun apply() {
+        settingsState.addonPaths = settingsComponent?.addonPaths ?: emptyList()
+        settingsState.defaultOdooBinPath = settingsComponent?.defaultOdooBinPath ?: ""
+        settingsState.defaultTestDbName = settingsComponent?.defaultTestDbName ?: ""
+    }
 
-    override fun reset() { settingsComponent?.addonPaths = settingsState.addonPaths }
+    override fun reset() {
+        settingsComponent?.addonPaths = settingsState.addonPaths
+        settingsComponent?.defaultOdooBinPath = settingsState.defaultOdooBinPath
+        settingsComponent?.defaultTestDbName = settingsState.defaultTestDbName
+    }
 
     override fun disposeUIResources() { settingsComponent = null }
 }

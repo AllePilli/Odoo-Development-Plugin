@@ -1,5 +1,6 @@
 package com.github.allepilli.odoodevelopmentplugin.execution
 
+import com.github.allepilli.odoodevelopmentplugin.settings.general.GeneralSettingsState
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.ConfigurationType
@@ -23,7 +24,10 @@ class OdooRunConfiguration(project: Project, factory: ConfigurationFactory) : Ab
         get() = options.runType
         set(value) { options.runType = value }
     var odooBinPath: String
-        get() = options.odooBinPath ?: ""
+        get() = options.odooBinPath
+                ?.trim()
+                ?.takeIf(String::isNotEmpty)
+                ?: GeneralSettingsState.getInstance(project).defaultOdooBinPath
         set(value) { options.odooBinPath = value }
     var dbName: String
         get() = options.dbName ?: ""

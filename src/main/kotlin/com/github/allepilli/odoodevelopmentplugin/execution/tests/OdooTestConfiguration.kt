@@ -1,6 +1,7 @@
 package com.github.allepilli.odoodevelopmentplugin.execution.tests
 
 import com.github.allepilli.odoodevelopmentplugin.execution.*
+import com.github.allepilli.odoodevelopmentplugin.settings.general.GeneralSettingsState
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.ConfigurationType
@@ -23,10 +24,16 @@ class OdooTestConfiguration(project: Project, factory: ConfigurationFactory) : A
         get() = options.runType
         set(value) { options.runType = value }
     var odooBinPath: String
-        get() = options.odooBinPath ?: ""
+        get() = options.odooBinPath
+                ?.trim()
+                ?.takeIf(String::isNotEmpty)
+                ?: GeneralSettingsState.getInstance(project).defaultOdooBinPath
         set(value) { options.odooBinPath = value }
     var dbName: String
-        get() = options.dbName ?: ""
+        get() = options.dbName
+                ?.trim()
+                ?.takeIf(String::isNotEmpty)
+                ?: GeneralSettingsState.getInstance(project).defaultTestDbName
         set(value) { options.dbName = value }
     var addonsPaths: String
         get() = options.addonsPaths ?: ""

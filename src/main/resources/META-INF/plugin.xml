@@ -70,6 +70,10 @@
         <codeInsight.lineMarkerProvider language="Python"
                                         implementationClass="com.github.allepilli.odoodevelopmentplugin.line_markers.override_methods.OverrideMethodLineMarkerProvider"/>
 
+        <runLineMarkerContributor language="Python"
+                                  implementationClass="com.github.allepilli.odoodevelopmentplugin.line_markers.override_methods.OdooTestRunLineMarkerContributor"
+                                  id="com.github.allepilli.odoodevelopmentplugin.line_markers.override_methods.OdooTestRunLineMarkerContributor"/>
+
         <completion.contributor language="Python"
                                 implementationClass="com.github.allepilli.odoodevelopmentplugin.completion.model_method_completion.ModelMethodCompletionContributor"
                                 order="last"/>
@@ -166,6 +170,9 @@
                 class="com.github.allepilli.odoodevelopmentplugin.dev.TestDomApiAction"
                 text="Test Odoo XML Dom" description="Test the dom api">
             <add-to-group group-id="Dev.PsiViewerActions" anchor="after" relative-to-action="PsiViewerForContext" />
+        </action>
+        <action class="com.github.allepilli.odoodevelopmentplugin.actions.RunOdooModuleTestAction" id="RunOdooModuleTest">
+            <add-to-group group-id="ProjectViewPopupMenuRunGroup" anchor="last"/>
         </action>
     </actions>
 </idea-plugin>
