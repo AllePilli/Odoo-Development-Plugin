@@ -4,7 +4,7 @@ import com.github.allepilli.odoodevelopmentplugin.execution.OdooRunType
 import com.intellij.execution.configurations.ModuleBasedConfigurationOptions
 
 class OdooTestConfigurationOptions: ModuleBasedConfigurationOptions() {
-    var runType by property(OdooRunType.NONE) { it == OdooRunType.NONE }
+    var runType by property(OdooRunType.INIT) { it == OdooRunType.NONE }
     var odooBinPath by string("")
     var dbName by string("")
     var addonsPaths by string("")

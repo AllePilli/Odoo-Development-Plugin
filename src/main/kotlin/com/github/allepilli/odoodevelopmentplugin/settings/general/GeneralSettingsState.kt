@@ -19,6 +19,8 @@ class GeneralSettingsState: PersistentStateComponent<GeneralSettingsState> {
     }
 
     var addonPaths = emptyList<String>()
+    var defaultTestDbName = "db-test"
+    var defaultOdooBinPath = ""
 
     override fun getState(): GeneralSettingsState = this
     override fun loadState(state: GeneralSettingsState) { XmlSerializerUtil.copyBean(state, this) }
