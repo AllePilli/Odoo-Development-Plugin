@@ -3,11 +3,11 @@ import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 plugins {
     id("java")
     id("org.jetbrains.kotlin.jvm") version "2.1.0"
-    id("org.jetbrains.intellij.platform") version "2.2.1"
+    id("org.jetbrains.intellij.platform") version "2.5.0"
 }
 
 group = "com.github.AllePilli"
-version = "0.2.7"
+version = "0.2.8"
 
 repositories {
     mavenCentral()

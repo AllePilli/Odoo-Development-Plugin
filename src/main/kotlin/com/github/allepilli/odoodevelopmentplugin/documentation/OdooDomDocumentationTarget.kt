@@ -2,7 +2,10 @@ package com.github.allepilli.odoodevelopmentplugin.documentation
 
 import com.github.allepilli.odoodevelopmentplugin.HtmlUtils
 import com.github.allepilli.odoodevelopmentplugin.OdooIcons
+import com.github.allepilli.odoodevelopmentplugin.core.Model
 import com.github.allepilli.odoodevelopmentplugin.extensions.appendXmlCodeBlock
+import com.github.allepilli.odoodevelopmentplugin.extensions.getContainingModule
+import com.github.allepilli.odoodevelopmentplugin.xml.dom.odoo_data_file.dom_elements.Field
 import com.github.allepilli.odoodevelopmentplugin.xml.dom.odoo_data_file.dom_elements.Record
 import com.github.allepilli.odoodevelopmentplugin.xml.dom.odoo_data_file.dom_elements.RefField
 import com.github.allepilli.odoodevelopmentplugin.xml.dom.odoo_data_file.dom_elements.Template
@@ -15,6 +18,7 @@ import com.intellij.platform.backend.presentation.TargetPresentation
 import com.intellij.psi.PsiElement
 import com.intellij.psi.createSmartPointer
 import com.intellij.psi.util.findParentOfType
+import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.xml.DomElement
 import com.intellij.util.xml.DomManager
