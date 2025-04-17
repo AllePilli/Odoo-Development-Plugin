@@ -21,7 +21,7 @@ val XmlElement.inOdooDataFile: Boolean
 
 inline fun <T, R> Iterable<T>.flatMapNotNull(transform: (T) -> Iterable<R>?): List<R> = mapNotNull(transform).flatten()
 
-fun <T: PsiFile?, Self: PsiFilePattern<T, Self>> PsiFilePattern<T, Self>.withFileName(fileName: String, ) =
+fun <T: PsiFile?, Self: PsiFilePattern<T, Self>> PsiFilePattern<T, Self>.withFileName(fileName: String) =
         with(object : PatternCondition<T>("withFileName") {
             override fun accepts(file: T & Any, context: ProcessingContext?): Boolean =
                     file.containingFile.name == fileName

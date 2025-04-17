@@ -1,11 +1,8 @@
 package com.github.allepilli.odoodevelopmentplugin.documentation
 
-import com.github.allepilli.odoodevelopmentplugin.HtmlUtils
 import com.github.allepilli.odoodevelopmentplugin.OdooIcons
 import com.github.allepilli.odoodevelopmentplugin.extensions.getContainingModule
-import com.github.allepilli.odoodevelopmentplugin.extensions.getContainingModuleName
 import com.github.allepilli.odoodevelopmentplugin.xml.dom.odoo_data_file.dom_elements.Field
-import com.intellij.icons.AllIcons
 import com.intellij.model.Pointer
 import com.intellij.openapi.editor.richcopy.HtmlSyntaxInfoUtil
 import com.intellij.openapi.util.text.HtmlChunk
@@ -18,11 +15,8 @@ import com.intellij.psi.createSmartPointer
 import com.intellij.psi.util.findParentOfType
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlTag
-import com.intellij.ui.IconManager
 import com.intellij.util.xml.DomManager
 import com.jetbrains.python.PythonLanguage
-import com.jetbrains.python.icons.PythonIcons
-import com.jetbrains.python.parser.icons.PythonParserIcons
 import com.jetbrains.python.psi.PyAssignmentStatement
 
 private val EMPTY_PRESENTATION = TargetPresentation.builder("Odoo Data File")

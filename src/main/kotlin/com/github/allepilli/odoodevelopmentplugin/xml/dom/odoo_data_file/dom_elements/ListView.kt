@@ -2,6 +2,4 @@ package com.github.allepilli.odoodevelopmentplugin.xml.dom.odoo_data_file.dom_el
 
 import com.intellij.util.xml.DomElement
 
-interface ListView: DomElement {
-
-}
+interface ListView: DomElement

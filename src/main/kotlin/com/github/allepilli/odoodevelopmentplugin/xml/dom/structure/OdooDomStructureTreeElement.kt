@@ -2,12 +2,10 @@ package com.github.allepilli.odoodevelopmentplugin.xml.dom.structure
 
 import com.github.allepilli.odoodevelopmentplugin.OdooIcons
 import com.github.allepilli.odoodevelopmentplugin.buildArray
-import com.github.allepilli.odoodevelopmentplugin.extensions.getAttributesList
 import com.intellij.ide.structureView.StructureViewTreeElement
 import com.intellij.ide.util.treeView.smartTree.TreeElement
 import com.intellij.navigation.ItemPresentation
 import com.intellij.openapi.project.IndexNotReadyException
-import com.intellij.psi.PsiElement
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.util.Function
 import com.intellij.util.xml.*

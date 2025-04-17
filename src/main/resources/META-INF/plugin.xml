@@ -22,7 +22,9 @@
     <change-notes>
         <![CDATA[
             Version 2.6:
-                - Add run configurations for odoo test files.
+— Add run configurations for odoo test files.
+            Version 2.9:
+— Plugin compatible with PyCharm 2025.x
         ]]>
     </change-notes>
 
@@ -30,7 +32,6 @@
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.python</depends>
-    <depends>Git4Idea</depends>
     <depends>com.intellij.dev</depends>
 
     <!-- Extension points defined by the plugin.

@@ -6,7 +6,6 @@ import com.intellij.platform.backend.documentation.PsiDocumentationTargetProvide
 import com.intellij.psi.PsiElement
 import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.psi.xml.XmlFile
-import com.jetbrains.python.PyElementTypes
 import com.jetbrains.python.PyTokenTypes
 import org.toml.lang.psi.ext.elementType
 
