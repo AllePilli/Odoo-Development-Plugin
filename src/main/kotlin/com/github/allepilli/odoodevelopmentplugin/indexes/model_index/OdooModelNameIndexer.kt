@@ -118,8 +118,7 @@ private fun getModelData(fileContent: CharSequence, lighterAST: LighterAST, stmt
 
     val methods = getMethods(lighterAST, fileContent, stmtList)
     val fields = getFields(lighterAST, fileContent, stmtList)
-
-    return modelName!! to OdooModelNameIndexItem(
+    val indexItem = OdooModelNameIndexItem(
             modelNameOffset = modelNameOffset,
             moduleName = moduleName,
             parents = parents,
@@ -127,6 +126,8 @@ private fun getModelData(fileContent: CharSequence, lighterAST: LighterAST, stmt
             fields = fields,
             delegateMap = inheritsDelegatedFields,
     )
+
+    return modelName!! to indexItem
 }
 
 /**

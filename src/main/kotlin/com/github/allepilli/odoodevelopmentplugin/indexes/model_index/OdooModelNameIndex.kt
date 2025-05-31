@@ -30,7 +30,6 @@ import java.io.File
 
 private const val CACHE_SIZE = 2 * 1024
 
-// TODO take a look at CustomImplementationFileBasedIndexExtension
 class OdooModelNameIndex: FileBasedIndexExtension<String, OdooModelNameIndexItem>() {
     private val indexer = OdooModelNameIndexer()
 

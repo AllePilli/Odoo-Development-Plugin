@@ -18,7 +18,7 @@ import com.intellij.util.io.EnumeratorStringDescriptor
 import com.intellij.util.io.KeyDescriptor
 import com.jetbrains.python.PythonFileType
 
-private val NAME: ID<String, Set<String>> = ID.create("com.github.allepilli.odoodevelopmentplugin.indexes.module_dependency_index.ModuleDependencyIndex")
+private val NAME: ID<String, Set<String>> = ID.create("ModuleDependencyIndex")
 
 class ModuleDependencyIndex: FileBasedIndexExtension<String, Set<String>>() {
     private val moduleDependencyDataIndexer = ModuleDependencyDataIndexer()

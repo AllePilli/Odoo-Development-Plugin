@@ -28,6 +28,7 @@ dependencies {
 
         bundledPlugin("PythonCore")
         bundledPlugin("com.intellij.dev")
+        plugin("com.jetbrains.hackathon.indices.viewer", "1.30")
         testFramework(TestFrameworkType.Platform)
     }
 
