@@ -30,15 +30,22 @@ import java.io.File
 
 private const val CACHE_SIZE = 2 * 1024
 
-class OdooModelNameIndex: FileBasedIndexExtension<String, OdooModelNameIndexItem>() {
+/**
+ * A single model name can be present multiple times in a module and also multiple times in a single file.
+ * It does not occur often that there are multiple models with the same name in a single file, but 'res.groups' in 'base'
+ * (in res_users.py) is an example. The value of the index is therefore a list of [OdooModelNameIndexItem]s, usually this list
+ * will only contain 1 item, only in the rare case that there are multiple models with the same name in a single file
+ * will this list contain multiple items.
+ */
+class OdooModelNameIndex: FileBasedIndexExtension<String, List<OdooModelNameIndexItem>>() {
     private val indexer = OdooModelNameIndexer()
 
-    override fun getName(): ID<String, OdooModelNameIndexItem> = OdooModelNameIndexUtil.NAME
+    override fun getName(): ID<String, List<OdooModelNameIndexItem>> = OdooModelNameIndexUtil.NAME
     override fun dependsOnFileContent(): Boolean = true
-    override fun getVersion(): Int = 3
-    override fun getIndexer(): DataIndexer<String, OdooModelNameIndexItem, FileContent> = indexer
+    override fun getVersion(): Int = 4
+    override fun getIndexer(): DataIndexer<String, List<OdooModelNameIndexItem>, FileContent> = indexer
     override fun getKeyDescriptor(): KeyDescriptor<String> = EnumeratorStringDescriptor.INSTANCE
-    override fun getValueExternalizer(): DataExternalizer<OdooModelNameIndexItem> = OdooModelNameIndexItem.dataExternalizer
+    override fun getValueExternalizer(): DataExternalizer<List<OdooModelNameIndexItem>> = OdooModelNameIndexItem.dataExternalizer
     override fun getFileTypesWithSizeLimitNotApplicable(): MutableCollection<FileType> = mutableListOf(PythonFileType.INSTANCE)
     override fun getCacheSize(): Int = CACHE_SIZE
 
@@ -61,13 +68,13 @@ class OdooModelNameIndex: FileBasedIndexExtension<String, OdooModelNameIndexItem
 }
 
 object OdooModelNameIndexUtil {
-    val NAME = ID.create<String, OdooModelNameIndexItem>("OdooModelNameIndex")
+    val NAME = ID.create<String, List<OdooModelNameIndexItem>>("OdooModelNameIndex")
 
     fun processAllNames(processor: Processor<in String>, scope: GlobalSearchScope, filter: IdFilter?) =
             FileBasedIndex.getInstance().processAllKeys(NAME, processor, scope, filter)
 
     fun processItems(name: String,
-                     processor: ValueProcessor<OdooModelNameIndexItem>,
+                     processor: ValueProcessor<List<OdooModelNameIndexItem>>,
                      scope: GlobalSearchScope,
                      inFile: VirtualFile? = null,
                      filter: IdFilter? = null) = FileBasedIndex.getInstance().processValues(NAME, name, inFile, processor, scope, filter)
@@ -96,30 +103,11 @@ object OdooModelNameIndexUtil {
         val scope = GlobalSearchScope.FilesScope.filesScope(project, moduleVF.getAllFiles(PythonFileType.INSTANCE))
 
         return try {
-            FileBasedIndex.getInstance().getValues(NAME, modelName, scope)
+            FileBasedIndex.getInstance()
+                    .getValues(NAME, modelName, scope)
+                    .flatten()
         } catch (_: IndexNotReadyException) {
             emptyList()
-        }
-    }
-
-    @Deprecated(
-            "A single module can have multiple models with the same name",
-            ReplaceWith("getModelInfo(project, modelName, moduleName)"),
-    )
-    fun getModelInfo(
-            project: Project,
-            modelName: String,
-            moduleName: String,
-            addonPaths: List<String>,
-    ): OdooModelNameIndexItem? {
-        val moduleVF = ModuleDependencyIndexUtil.findModuleByName(project, moduleName) ?: return null
-        val scope = GlobalSearchScope.FilesScope.filesScope(project, moduleVF.getAllFiles(PythonFileType.INSTANCE))
-
-        return try {
-            FileBasedIndex.getInstance().getValues(NAME, modelName, scope)
-                    .singleOrNull()
-        } catch (_: IndexNotReadyException) {
-            null
         }
     }
 
@@ -133,7 +121,9 @@ object OdooModelNameIndexUtil {
                     else GlobalSearchScope.projectScope(project).intersectWith(altScope)
 
         try {
-            FileBasedIndex.getInstance().getValues(NAME, modelName, scope)
+            FileBasedIndex.getInstance()
+                    .getValues(NAME, modelName, scope)
+                    .flatten()
         } catch (_: IndexNotReadyException) {
             emptyList()
         }
@@ -147,10 +137,13 @@ object OdooModelNameIndexUtil {
                     .takeIf { it.isNotEmpty() }
                     ?: return@compute null
 
-            if (map.size == 1) map.keys.first() else {
+            if (map.size == 1 && map[map.keys.first()]!!.size == 1) map.keys.first()
+            else {
                 val classRangeInFile = pyClass.textRangeInParent
-                map.firstNotNullOfOrNull { (modelName, item) ->
-                    if (classRangeInFile.contains(item.modelNameOffset)) modelName else null
+                map.firstNotNullOfOrNull { (modelName, items) ->
+                    items.firstNotNullOfOrNull { item ->
+                        if (classRangeInFile.contains(item.modelNameOffset)) modelName else null
+                    }
                 }
             }
         } catch (_: IndexNotReadyException) {

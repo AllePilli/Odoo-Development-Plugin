@@ -25,10 +25,10 @@ private const val COMODEL_NAME = "comodel_name"
 
 private val WANTED_PROPS = setOf(MODEL_NAME_PROP, INHERIT_NAME_PROP, INHERITS_NAME_PROP)
 
-class OdooModelNameIndexer: DataIndexer<String, OdooModelNameIndexItem, FileContent> {
+class OdooModelNameIndexer: DataIndexer<String, List<OdooModelNameIndexItem>, FileContent> {
     var addonPaths: List<String>? = null
 
-    override fun map(fileContent: FileContent): MutableMap<String, OdooModelNameIndexItem> = (fileContent as? PsiDependentFileContent)?.lighterAST?.let { lighterAST ->
+    override fun map(fileContent: FileContent): MutableMap<String, List<OdooModelNameIndexItem>> = (fileContent as? PsiDependentFileContent)?.lighterAST?.let { lighterAST ->
         if (addonPaths == null) {
             addonPaths = fileContent.project.addonPaths
         }
@@ -221,12 +221,17 @@ private fun getAnyField(lighterAST: LighterAST, fileContent: CharSequence, assig
             FieldInfo.AnyField(fieldName, targetExpr.startOffset)
         }
 
-private fun LighterAST.getAllModelNamesWithItems(fileContent: CharSequence, moduleName: String?): Map<String, OdooModelNameIndexItem> =
-        mapChildrenNotNull(root, PyStubElementTypes.CLASS_DECLARATION) { classNode ->
-            useSingleChild(classNode, PyElementTypes.STATEMENT_LIST) { stmtList ->
-                getModelData(fileContent, this, stmtList, moduleName)
-            }
-        }.toMap()
+private fun LighterAST.getAllModelNamesWithItems(
+    fileContent: CharSequence,
+    moduleName: String?
+): Map<String, List<OdooModelNameIndexItem>> = mapChildrenNotNull(root, PyStubElementTypes.CLASS_DECLARATION) { classNode ->
+        useSingleChild(classNode, PyElementTypes.STATEMENT_LIST) { stmtList ->
+            getModelData(fileContent, this, stmtList, moduleName)
+        }
+    }
+    .groupBy { it.first }
+    .mapValues { (_, list) -> list.map { it.second } }
+    .toMap()
 
 private fun CharSequence.buildString(node: LighterASTNode, startOffset: Int = node.startOffset, endOffset: Int = node.endOffset): String {
     val content = this

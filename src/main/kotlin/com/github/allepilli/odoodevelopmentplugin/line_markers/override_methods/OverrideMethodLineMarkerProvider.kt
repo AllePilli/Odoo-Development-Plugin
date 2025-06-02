@@ -1,17 +1,13 @@
 package com.github.allepilli.odoodevelopmentplugin.line_markers.override_methods
 
 import com.github.allepilli.odoodevelopmentplugin.core.Model
-import com.github.allepilli.odoodevelopmentplugin.extensions.addonPaths
-import com.github.allepilli.odoodevelopmentplugin.extensions.getContainingModule
-import com.github.allepilli.odoodevelopmentplugin.extensions.getModelName
-import com.github.allepilli.odoodevelopmentplugin.extensions.takeUnlessEmpty
+import com.github.allepilli.odoodevelopmentplugin.extensions.*
 import com.github.allepilli.odoodevelopmentplugin.indexes.model_index.OdooModelNameIndexUtil
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerProvider
 import com.intellij.codeInsight.navigation.NavigationGutterIconBuilder
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.elementType
@@ -22,7 +18,7 @@ import com.jetbrains.python.psi.PyFunction
 private val logger = Logger.getInstance(OverrideMethodLineMarkerProvider::class.java)
 private const val NOT_A_MODEL_NAME = "__Odoo_Development_Plugin_Not_A_Model_Class__"
 
-class OverrideMethodLineMarkerProvider: RelatedItemLineMarkerProvider(), DumbAware {
+class OverrideMethodLineMarkerProvider: RelatedItemLineMarkerProvider() {
     override fun collectSlowLineMarkers(elements: List<PsiElement>, result: MutableCollection<in LineMarkerInfo<*>>) {
         val addonPaths = elements.firstOrNull()?.project?.addonPaths ?: return
         var currentModule: VirtualFile?
@@ -34,7 +30,8 @@ class OverrideMethodLineMarkerProvider: RelatedItemLineMarkerProvider(), DumbAwa
             currentModule = null
             currentClassTextRange = IntRange(pyClass.textOffset, pyClass.textOffset + pyClass.textLength - 1)
             currentModelName = OdooModelNameIndexUtil.getModelName(pyClass) ?: run {
-                logger.warn("Could not find model for ${pyClass.name}")
+                if (pyClass.isOdooModel(includeBaseModels = false))
+                    logger.warn("Could not find model for ${pyClass.name} ${pyClass.containingFile.virtualFile.path}")
                 NOT_A_MODEL_NAME
             }
 

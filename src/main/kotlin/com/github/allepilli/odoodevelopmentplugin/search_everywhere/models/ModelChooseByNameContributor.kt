@@ -17,7 +17,11 @@ class ModelChooseByNameContributor : ChooseByNameContributorEx {
     override fun processElementsWithName(name: String, processor: Processor<in NavigationItem>, parameters: FindSymbolParameters) {
         OdooModelNameIndexUtil.processItems(
                 name,
-                { file, item -> processor.process(ModelNavigationItem(name, item.modelNameOffset, file, parameters)) },
+                { file, items ->
+                    !items.all { item ->
+                        processor.process(ModelNavigationItem(name, item.modelNameOffset, file, parameters))
+                    }
+                },
                 parameters.searchScope,
                 filter = parameters.idFilter,
         )

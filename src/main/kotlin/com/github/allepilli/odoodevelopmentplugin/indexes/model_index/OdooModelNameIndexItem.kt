@@ -75,25 +75,29 @@ data class OdooModelNameIndexItem(val modelNameOffset: Int,
             IndexUtil.readString(this) to IndexUtil.readString(this)
         }.toMap()
 
-        val dataExternalizer = object: DataExternalizer<OdooModelNameIndexItem> {
-            override fun save(record: DataOutput, item: OdooModelNameIndexItem) {
-                DataInputOutputUtil.writeINT(record, item.modelNameOffset)
-                IndexUtil.writeNullableString(record, item.moduleName)
+        val dataExternalizer = object: DataExternalizer<List<OdooModelNameIndexItem>> {
+            override fun save(record: DataOutput, items: List<OdooModelNameIndexItem>) {
+                DataInputOutputUtil.writeSeq(record, items) { item ->
+                    DataInputOutputUtil.writeINT(record, item.modelNameOffset)
+                    IndexUtil.writeNullableString(record, item.moduleName)
 
-                record.writeNameLocation(item.parents)
-                record.writeNameLocation(item.methods)
-                record.writeFieldInfo(item.fields)
-                record.writeDelegateMap(item.delegateMap)
+                    record.writeNameLocation(item.parents)
+                    record.writeNameLocation(item.methods)
+                    record.writeFieldInfo(item.fields)
+                    record.writeDelegateMap(item.delegateMap)
+                }
             }
 
-            override fun read(record: DataInput): OdooModelNameIndexItem = OdooModelNameIndexItem(
-                    modelNameOffset = DataInputOutputUtil.readINT(record),
-                    moduleName = IndexUtil.readNullableString(record),
-                    parents = record.readNameLocation(),
-                    methods = record.readNameLocation(),
-                    fields = record.readFieldInfo(),
-                    delegateMap = record.readDelegateMap(),
-            )
+            override fun read(record: DataInput): List<OdooModelNameIndexItem> = DataInputOutputUtil.readSeq(record) {
+                OdooModelNameIndexItem(
+                        modelNameOffset = DataInputOutputUtil.readINT(record),
+                        moduleName = IndexUtil.readNullableString(record),
+                        parents = record.readNameLocation(),
+                        methods = record.readNameLocation(),
+                        fields = record.readFieldInfo(),
+                        delegateMap = record.readDelegateMap(),
+                )
+            }
         }
     }
 }

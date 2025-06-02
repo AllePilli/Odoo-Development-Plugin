@@ -44,6 +44,8 @@ class ModelMethodClassMemberProvider: PyClassMembersProviderBase() {
                 .let { (modelLitStr) -> PyStringLiteralUtil.getStringValue(modelLitStr.text) }
 
         val project = location.project
+        // TODO for files in the odoo/odoo directory the module cannot be found because it is not a module
+        // TODO so ,as an edge case, we need to handle the cases of model references etc. in these files as well
         val contextModule = context.origin?.virtualFile?.getContainingModule(project) ?: return mutableListOf()
         val model = Model(project, modelName, contextModule.name)
 
