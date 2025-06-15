@@ -42,7 +42,7 @@ class OdooModelNameIndex: FileBasedIndexExtension<String, List<OdooModelNameInde
 
     override fun getName(): ID<String, List<OdooModelNameIndexItem>> = OdooModelNameIndexUtil.NAME
     override fun dependsOnFileContent(): Boolean = true
-    override fun getVersion(): Int = 4
+    override fun getVersion(): Int = 5
     override fun getIndexer(): DataIndexer<String, List<OdooModelNameIndexItem>, FileContent> = indexer
     override fun getKeyDescriptor(): KeyDescriptor<String> = EnumeratorStringDescriptor.INSTANCE
     override fun getValueExternalizer(): DataExternalizer<List<OdooModelNameIndexItem>> = OdooModelNameIndexItem.dataExternalizer

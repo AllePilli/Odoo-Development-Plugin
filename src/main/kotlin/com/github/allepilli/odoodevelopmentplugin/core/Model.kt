@@ -88,10 +88,11 @@ class Model(project: Project, val name: String, val contextModuleName: String) {
             }
 
             val classes = modelInfos.flatMapNotNull { (aName, infos) ->
-                infos.flatMap { info ->
-                    OdooModelNameIndexUtil.getModels(project, aName, info.moduleName!!).map { pyClass ->
-                        info to pyClass
-                    }
+                infos.mapNotNull { info ->
+                    // We assume that one OdooModelNameIndexItem represents only one possible PyClass
+                    OdooModelNameIndexUtil.getModels(project, aName, info.moduleName)
+                            .firstOrNull { pyClass -> info.represents(pyClass) }
+                            ?.let { pyClass -> info to pyClass }
                 }
             }
 

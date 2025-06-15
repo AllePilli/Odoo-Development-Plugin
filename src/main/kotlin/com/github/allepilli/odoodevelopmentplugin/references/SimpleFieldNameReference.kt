@@ -30,10 +30,10 @@ class SimpleFieldNameReference(psiElement: PsiElement, rangeInElement: TextRange
         val model = Model(project, modelName, currentModule.name)
 
         val fieldElements = model.getField(fieldName)
-                ?.mapNotNull { it.element }
+                ?.mapNotNull { it.element!!.parent } // parent is the Target Expression
                 ?: return@buildArray
 
-        addAll(fieldElements.map(::PsiElementResolveResult))
+        addAll(PsiElementResolveResult.createResults(fieldElements))
     }
 
     override fun getVariants(): Array<Any> {
