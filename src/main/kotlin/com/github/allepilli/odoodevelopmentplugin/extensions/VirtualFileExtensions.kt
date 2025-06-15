@@ -14,14 +14,18 @@ import com.intellij.psi.xml.XmlFile
 import com.intellij.util.xml.DomManager
 import java.io.File
 
-fun VirtualFile.getContainingModuleName(addonPaths: List<String>): String? {
+fun VirtualFile.getContainingModuleName(addonPaths: List<String>): String? =
+        getContainingModuleNameAndRelativePathInModule(addonPaths)?.first
+
+fun VirtualFile.getContainingModuleNameAndRelativePathInModule(addonPaths: List<String>): Pair<String, String>? {
     if (addonPaths.isEmpty()) throw IllegalArgumentException("addonPaths cannot be empty!")
 
     return addonPaths.firstOrNull { addonPath -> addonPath in path }
             ?.let { addonPath ->
                 path.removePrefix("$addonPath/")
                         .split(File.separatorChar, limit = 2)
-                        .firstOrNull()
+                        .takeIf { it.size == 2 }
+                        ?.let { (first, second) -> first to second }
             }
 }
 

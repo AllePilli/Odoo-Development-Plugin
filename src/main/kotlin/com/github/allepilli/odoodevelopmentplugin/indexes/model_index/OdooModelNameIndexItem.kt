@@ -3,12 +3,14 @@ package com.github.allepilli.odoodevelopmentplugin.indexes.model_index
 import com.github.allepilli.odoodevelopmentplugin.indexes.IndexUtil
 import com.intellij.util.io.DataExternalizer
 import com.intellij.util.io.DataInputOutputUtil
+import com.jetbrains.python.psi.PyClass
 import java.io.DataInput
 import java.io.DataOutput
 
 data class NameLocation(val name: String, val offset: Int)
 
 /**
+ * @property filePath the relative path of the file from the containing module
  * @property modelNameOffset The absolute offset of the model name definition in the [com.intellij.openapi.util.TextRange] of the containing file
  * @property moduleName The module this model is part of
  * @property parents The declared parents of the model, defined by the `_inherit` field
@@ -16,13 +18,15 @@ data class NameLocation(val name: String, val offset: Int)
  * @property fields the fields declared in this model
  * @property delegateMap map of field names to comodel names, defined in the '_inherits' field
  */
-data class OdooModelNameIndexItem(val modelNameOffset: Int,
-                                  val moduleName: String?,
-                                  val parents: List<NameLocation> = emptyList(),
-                                  val methods: List<NameLocation> = emptyList(),
-                                  val fields: List<FieldInfo> = emptyList(),
-                                  val delegateMap: Map<String, String> = emptyMap(),
-        ) {
+data class OdooModelNameIndexItem(
+        val filePath: String,
+        val modelNameOffset: Int,
+        val moduleName: String,
+        val parents: List<NameLocation> = emptyList(),
+        val methods: List<NameLocation> = emptyList(),
+        val fields: List<FieldInfo> = emptyList(),
+        val delegateMap: Map<String, String> = emptyMap(),
+) {
     companion object {
         private fun DataOutput.writeNameLocation(list: List<NameLocation>) =
                 DataInputOutputUtil.writeSeq(this, list) { nameLocation ->
@@ -78,8 +82,9 @@ data class OdooModelNameIndexItem(val modelNameOffset: Int,
         val dataExternalizer = object: DataExternalizer<List<OdooModelNameIndexItem>> {
             override fun save(record: DataOutput, items: List<OdooModelNameIndexItem>) {
                 DataInputOutputUtil.writeSeq(record, items) { item ->
+                    IndexUtil.writeString(record, item.filePath)
                     DataInputOutputUtil.writeINT(record, item.modelNameOffset)
-                    IndexUtil.writeNullableString(record, item.moduleName)
+                    IndexUtil.writeString(record, item.moduleName)
 
                     record.writeNameLocation(item.parents)
                     record.writeNameLocation(item.methods)
@@ -90,8 +95,9 @@ data class OdooModelNameIndexItem(val modelNameOffset: Int,
 
             override fun read(record: DataInput): List<OdooModelNameIndexItem> = DataInputOutputUtil.readSeq(record) {
                 OdooModelNameIndexItem(
+                        filePath = IndexUtil.readString(record),
                         modelNameOffset = DataInputOutputUtil.readINT(record),
-                        moduleName = IndexUtil.readNullableString(record),
+                        moduleName = IndexUtil.readString(record),
                         parents = record.readNameLocation(),
                         methods = record.readNameLocation(),
                         fields = record.readFieldInfo(),
@@ -100,4 +106,11 @@ data class OdooModelNameIndexItem(val modelNameOffset: Int,
             }
         }
     }
+
+    /**
+     * @return true if this [OdooModelNameIndexItem] represents the given [pyClass]
+     */
+    fun represents(pyClass: PyClass): Boolean =
+            pyClass.textRange.contains(modelNameOffset)
+                    && pyClass.containingFile.viewProvider.virtualFile.path.endsWith(filePath)
 }

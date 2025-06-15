@@ -33,23 +33,26 @@ class OdooModelNameIndexer: DataIndexer<String, List<OdooModelNameIndexItem>, Fi
             addonPaths = fileContent.project.addonPaths
         }
 
-        val moduleName = lighterAST.getModuleName(fileContent, addonPaths!!)
-        lighterAST.getAllModelNamesWithItems(fileContent.contentAsText, moduleName).toMutableMap()
+        lighterAST.getModuleNameAndRelativePathInModule(fileContent, addonPaths!!)
+                ?.let { (moduleName, filePath) ->
+                    lighterAST.getAllModelNamesWithItems(fileContent.contentAsText, moduleName, filePath).toMutableMap()
+                }
+                ?: mutableMapOf()
     } ?: mutableMapOf()
 }
 
-private fun LighterAST.getModuleName(fileContent: PsiDependentFileContent, addonPaths: List<String>): String? {
-    return if (addonPaths.isEmpty()) {
-        fileContent.psiFile.originalFile.slowGetContainingModuleName() ?: run {
-            logger<OdooModelNameIndexer>().warn("Could not find module name for ${fileContent.fileName} while indexing")
-            null
-        }
-    } else {
-        fileContent.psiFile.virtualFile.getContainingModuleName(addonPaths)
+private fun LighterAST.getModuleNameAndRelativePathInModule(fileContent: PsiDependentFileContent,
+                                                    addonPaths: List<String>): Pair<String, String>? {
+    if (addonPaths.isEmpty()) return run {
+        logger<OdooModelNameIndexer>().warn("Could not find module name for ${fileContent.fileName} while indexing")
+        null
     }
+
+    val virtualFile = fileContent.psiFile.virtualFile
+    return virtualFile.getContainingModuleNameAndRelativePathInModule(addonPaths)
 }
 
-private fun getModelData(fileContent: CharSequence, lighterAST: LighterAST, stmtList: LighterASTNode, moduleName: String?): Pair<String, OdooModelNameIndexItem>? {
+private fun getModelData(fileContent: CharSequence, lighterAST: LighterAST, stmtList: LighterASTNode, moduleName: String, filePath: String): Pair<String, OdooModelNameIndexItem>? {
     var modelName: String? = null
     var modelNameOffset = 0
     var parents: List<NameLocation> = emptyList()
@@ -119,6 +122,7 @@ private fun getModelData(fileContent: CharSequence, lighterAST: LighterAST, stmt
     val methods = getMethods(lighterAST, fileContent, stmtList)
     val fields = getFields(lighterAST, fileContent, stmtList)
     val indexItem = OdooModelNameIndexItem(
+            filePath = filePath,
             modelNameOffset = modelNameOffset,
             moduleName = moduleName,
             parents = parents,
@@ -223,10 +227,11 @@ private fun getAnyField(lighterAST: LighterAST, fileContent: CharSequence, assig
 
 private fun LighterAST.getAllModelNamesWithItems(
     fileContent: CharSequence,
-    moduleName: String?
+    moduleName: String,
+    filePath: String,
 ): Map<String, List<OdooModelNameIndexItem>> = mapChildrenNotNull(root, PyStubElementTypes.CLASS_DECLARATION) { classNode ->
         useSingleChild(classNode, PyElementTypes.STATEMENT_LIST) { stmtList ->
-            getModelData(fileContent, this, stmtList, moduleName)
+            getModelData(fileContent, this, stmtList, moduleName, filePath)
         }
     }
     .groupBy { it.first }

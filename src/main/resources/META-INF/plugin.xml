@@ -59,8 +59,8 @@
         <psi.referenceContributor id="com.github.allepilli.odoodevelopmentplugin.references.python.manifest_module_dependency.ManifestModuleDependencyContributor"
                                   implementation="com.github.allepilli.odoodevelopmentplugin.references.python.manifest_module_dependency.ManifestModuleDependencyContributor"
                                   language="Python"/>
-        <psi.referenceContributor id="com.github.allepilli.odoodevelopmentplugin.references.python.fields_in_constrains_wrapper.FieldsInConstrainsWrapperContributor"
-                                  implementation="com.github.allepilli.odoodevelopmentplugin.references.python.fields_in_constrains_wrapper.FieldsInConstrainsWrapperContributor"
+        <psi.referenceContributor id="com.github.allepilli.odoodevelopmentplugin.references.python.fields_in_odoo_api_decorator_args.FieldsInOdooApiDecoratorArgsContributor"
+                                  implementation="com.github.allepilli.odoodevelopmentplugin.references.python.fields_in_odoo_api_decorator_args.FieldsInOdooApiDecoratorArgsContributor"
                                   language="Python"/>
 
         <configurationType implementation="com.github.allepilli.odoodevelopmentplugin.execution.OdooConfigurationType"/>
