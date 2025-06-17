@@ -38,6 +38,9 @@ class OdooRunConfiguration(project: Project, factory: ConfigurationFactory) : Ab
     var odooModules: String
         get() = options.odooModules ?: ""
         set(value) { options.odooModules = value}
+    var withDemo: Boolean
+        get() = options.withDemo
+        set(value) { options.withDemo = value }
     var otherOptions: String
         get() = options.otherOptions ?: ""
         set(value) { options.otherOptions = value }
