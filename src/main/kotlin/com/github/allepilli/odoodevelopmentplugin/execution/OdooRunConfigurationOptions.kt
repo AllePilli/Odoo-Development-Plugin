@@ -8,5 +8,6 @@ class OdooRunConfigurationOptions: ModuleBasedConfigurationOptions() {
     var dbName by string("")
     var addonsPaths by string("")
     var odooModules by string("")
+    var withDemo by property(false) { !it }
     var otherOptions by string("")
 }

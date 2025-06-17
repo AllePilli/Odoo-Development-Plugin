@@ -1,17 +1,17 @@
 package com.github.allepilli.odoodevelopmentplugin.execution
 
-import com.github.allepilli.odoodevelopmentplugin.ComboBoxValue
-import com.github.allepilli.odoodevelopmentplugin.TextFieldValue
-import com.github.allepilli.odoodevelopmentplugin.TextFieldWithBrowseButtonValue
-import com.github.allepilli.odoodevelopmentplugin.TextFieldWithCompletionValue
+import com.github.allepilli.odoodevelopmentplugin.*
 import com.github.allepilli.odoodevelopmentplugin.indexes.module_dependency_index.ModuleDependencyIndexUtil
+import com.github.allepilli.odoodevelopmentplugin.services.OdooVersionManager
 import com.github.allepilli.odoodevelopmentplugin.textcompletion.LazyTextCompletionProvider
 import com.github.allepilli.odoodevelopmentplugin.textcompletion.StringValueDescriptor
+import com.intellij.openapi.components.service
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.TextFieldWithBrowseButton
+import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.components.fields.ExpandableTextField
 import com.intellij.ui.dsl.builder.AlignX
@@ -40,6 +40,7 @@ class OdooRunConfigurationSettingsEditor(project: Project): SettingsEditor<OdooR
     private var _odooBinPathComponent: TextFieldWithBrowseButton? = null
     private var _dbNameComponent: JBTextField? = null
     private var _addonsPathsComponent: JBTextField? = null
+    private var _withDemoComponent: JBCheckBox? = null
     private var _otherOptionsTextField: ExpandableTextField? = null
     private var _modulesTextField = TextFieldWithCompletion(project, moduleNameTextCompletionProvider, "", true, true, true)
     private val myPanel = panel {
@@ -63,6 +64,13 @@ class OdooRunConfigurationSettingsEditor(project: Project): SettingsEditor<OdooR
                     .align(AlignX.FILL)
                     .comment("Comma separated list of module names")
         }
+
+        if (project.service<OdooVersionManager>().getVersion() == VersionConstants.SETTING_WITH_DEMO) {
+            row {
+                _withDemoComponent = checkBox("With demo").component
+            }
+        }
+
         row("Other Options:") {
             _otherOptionsTextField = expandableTextField()
                     .resizableColumn()
@@ -76,6 +84,7 @@ class OdooRunConfigurationSettingsEditor(project: Project): SettingsEditor<OdooR
     private var dbName by TextFieldValue(_dbNameComponent)
     private var addonsPaths by TextFieldValue(_addonsPathsComponent)
     private var modules by TextFieldWithCompletionValue(_modulesTextField)
+    private var withDemo by CheckBoxValue(_withDemoComponent)
     private var otherOptions by TextFieldValue(_otherOptionsTextField)
 
     override fun resetEditorFrom(configuration: OdooRunConfiguration) {
@@ -84,6 +93,11 @@ class OdooRunConfigurationSettingsEditor(project: Project): SettingsEditor<OdooR
         dbName = configuration.dbName
         addonsPaths = configuration.addonsPaths
         modules = configuration.odooModules
+
+        if (configuration.project.service<OdooVersionManager>().getVersion() == VersionConstants.SETTING_WITH_DEMO) {
+            withDemo = configuration.withDemo
+        }
+
         otherOptions = configuration.otherOptions
     }
 
@@ -93,6 +107,11 @@ class OdooRunConfigurationSettingsEditor(project: Project): SettingsEditor<OdooR
         configuration.dbName = dbName
         configuration.addonsPaths = addonsPaths
         configuration.odooModules = modules
+
+        if (configuration.project.service<OdooVersionManager>().getVersion() == VersionConstants.SETTING_WITH_DEMO) {
+            configuration.withDemo = withDemo
+        }
+
         configuration.otherOptions = otherOptions
     }
 

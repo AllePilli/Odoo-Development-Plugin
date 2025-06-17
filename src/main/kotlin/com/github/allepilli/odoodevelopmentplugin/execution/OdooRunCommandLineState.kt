@@ -1,6 +1,8 @@
 package com.github.allepilli.odoodevelopmentplugin.execution
 
+import com.github.allepilli.odoodevelopmentplugin.VersionConstants
 import com.github.allepilli.odoodevelopmentplugin.execution.tests.OdooTestConfiguration
+import com.github.allepilli.odoodevelopmentplugin.services.OdooVersionManager
 import com.github.allepilli.odoodevelopmentplugin.settings.general.GeneralSettingsState
 import com.intellij.execution.DefaultExecutionResult
 import com.intellij.execution.ExecutionResult
@@ -15,6 +17,7 @@ import com.intellij.execution.target.value.TraceableTargetEnvironmentFunction
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.encoding.EncodingProjectManager
@@ -77,6 +80,12 @@ class OdooRunCommandLineState<T: AbstractPythonRunConfiguration<T>>(private val 
             OdooRunType.NONE -> throw IllegalStateException("Odoo run type should not be of type NONE")
         }
         addParameter(runConfiguration.odooModules)
+
+        if (runConfiguration.project.service<OdooVersionManager>().getVersion() == VersionConstants.SETTING_WITH_DEMO) {
+            if (runConfiguration.withDemo) {
+                addParameter("--with-demo")
+            }
+        }
 
         val otherOptions = runConfiguration.otherOptions.trim()
         if (otherOptions.isNotEmpty()) addParameters(otherOptions.split(' '))
