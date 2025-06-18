@@ -33,7 +33,7 @@ class SelfEnvMethodCompletionContributor: BasicCompletionContributor<PsiElement>
                 ?: return emptyList()
         val model = Model(project, modelName, contextModule.name)
 
-        return model.methodElements.map {
+        return model.methods.map {
             val parameterNames = it.parameterList.parameters.mapNotNull { param -> param.name }
             var lookupElement = LookupElementBuilder.createWithIcon(it)
                     .withTypeText(it.containingClass?.name ?: "")

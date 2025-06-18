@@ -8,11 +8,13 @@ import com.github.allepilli.odoodevelopmentplugin.indexes.model_index.OdooModelN
 import com.github.allepilli.odoodevelopmentplugin.indexes.model_index.OdooModelNameIndexUtil
 import com.github.allepilli.odoodevelopmentplugin.indexes.module_dependency_index.ModuleDependencyIndexUtil
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.util.parentOfType
 import com.jetbrains.python.psi.PyClass
 import com.jetbrains.python.psi.PyFunction
+import com.jetbrains.python.psi.PyTargetExpression
 
 /**
  * Represents an Odoo model, which is the result of loading different modules that add/override
@@ -21,42 +23,67 @@ import com.jetbrains.python.psi.PyFunction
  * @param contextModuleName the name of the module, which acts as the context in which the model has been loaded
  */
 class Model(project: Project, val name: String, val contextModuleName: String) {
-    private val myFields: MutableMap<String, MutableList<SmartPsiElementPointer<*>>> = mutableMapOf()
+    private val myFields: MutableMap<String, MutableList<Pair<SmartPsiElementPointer<*>, Field>>> = mutableMapOf()
     private val myMethods: MutableMap<String, MutableList<SmartPsiElementPointer<*>>> = mutableMapOf()
     private val myNames: MutableSet<String> = mutableSetOf()
     private val dependencyGraph = ModuleGraph.createGraph(project, contextModuleName)
 
-    val fields: List<String>
+    val fieldNames: List<String>
         get() = myFields.keys.toList()
 
-    val allFieldElements: List<SmartPsiElementPointer<*>>
-        get() = buildList { myFields.values.forEach(::addAll) }
+    /**
+     * Identifiers of the [PyTargetExpression]s
+     */
+    val rawFields: List<Pair<SmartPsiElementPointer<*>, Field>>
+        get() = myFields.values.flatten()
 
-    val methods: List<String>
+    val fields: List<Pair<PyTargetExpression, Field>>
+        get() = rawFields.mapNotNull { (pointer, field) ->
+            pointer.getParent<PyTargetExpression>()?.let { targetExpr ->
+                targetExpr to field
+            }
+        }
+
+    val methodNames: List<String>
         get() = myMethods.keys.toList()
 
     /**
-     * [rawMethodElements] are the Identifiers of the PyFunctions
+     * Identifiers of the [PyFunction]s
      */
-    val rawMethodElements: List<SmartPsiElementPointer<*>>
+    val rawMethods: List<SmartPsiElementPointer<*>>
         get() = myMethods.values.flatten()
 
-    val methodElements: List<PyFunction>
-        get() = rawMethodElements.mapNotNull { it.getPyFunction() }
+    val methods: List<PyFunction>
+        get() = rawMethods.mapNotNull { it.getParent() }
 
     init {
         load(project)
     }
 
-    fun getField(name: String) = myFields.getOrDefault(name, mutableListOf())
-            .takeIf { it.isNotEmpty() }
-    fun getMethod(name: String) = myMethods.getOrDefault(name, mutableListOf())
-            .takeIf { it.isNotEmpty() }
-    fun getMethodFunction(name: String) = getMethod(name)?.mapNotNull { it.getPyFunction() }
+    private inline fun <reified T: PsiElement> SmartPsiElementPointer<*>.getParent(): T? =
+            element?.parentOfType<T>(false)
 
-    private fun SmartPsiElementPointer<*>.getPyFunction() = element?.parentOfType<PyFunction>(false)
+    /**
+     * @return all raw fields in this [Model] with the same [name]
+     */
+    fun getRawFields(name: String): List<Pair<SmartPsiElementPointer<*>, Field>> = myFields
+            .getOrDefault(name, mutableListOf())
 
-    fun getInheritedMethods(pyClass: PyClass): List<PyFunction> = methodElements.filter { pyFunction ->
+    fun getFields(name: String): List<Pair<PyTargetExpression, Field>> = getRawFields(name)
+            .mapNotNull { (pointer, field) ->
+                pointer.getParent<PyTargetExpression>()?.let { targetExpr ->
+                    targetExpr to field
+                }
+            }
+
+    /**
+     * @return all raw methods in this [Model] with the same [name]
+     */
+    fun getRawMethods(name: String): List<SmartPsiElementPointer<*>> = myMethods.getOrDefault(name, mutableListOf())
+
+    fun getMethods(name: String): List<PyFunction> = getRawMethods(name).mapNotNull { it.getParent() }
+
+    fun getInheritedMethods(pyClass: PyClass): List<PyFunction> = methods.filter { pyFunction ->
         pyClass != pyFunction.containingClass
     }
 
@@ -101,7 +128,7 @@ class Model(project: Project, val name: String, val contextModuleName: String) {
                 for (field in info.fields) {
                     val element = file.findElementAt(field.offset) ?: continue
 
-                    myFields.getOrPut(field.name) { mutableListOf() }.add(SmartPointerManager.createPointer(element))
+                    myFields.getOrPut(field.name) { mutableListOf() }.add(SmartPointerManager.createPointer(element) to field.toField())
 
                     // Handle delegated fields (by _inherits or delegate=True)
                     val delegatedModelName = if (field is FieldInfo.Many2OneField && field.delegate) {
@@ -115,10 +142,9 @@ class Model(project: Project, val name: String, val contextModuleName: String) {
                     val module = pyClass.containingModule?.name ?: continue
                     val model = Model(project, delegatedModelName, module)
 
-                    model.fields.forEach { fieldFromDelegate ->
-                        model.getField(fieldFromDelegate)?.let { elements ->
-                            myFields.getOrPut(fieldFromDelegate) { mutableListOf() }.addAll(elements)
-                        }
+                    model.fieldNames.forEach { fieldFromDelegate ->
+                        myFields.getOrPut(fieldFromDelegate) { mutableListOf() }
+                                .addAll(model.getRawFields(fieldFromDelegate))
                     }
                 }
 

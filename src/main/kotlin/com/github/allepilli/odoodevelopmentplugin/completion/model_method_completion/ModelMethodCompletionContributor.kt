@@ -24,7 +24,7 @@ class ModelMethodCompletionContributor: BasicCompletionContributor<PsiElement>(M
         val moduleName = module.name
         val model = Model(project, modelName, moduleName)
 
-        return model.methodElements
+        return model.methods
                 .uniqueBy { it.name }
                 .map {
                     buildLookupElementWithIcon(it) {
