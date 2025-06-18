@@ -19,6 +19,10 @@ private const val INHERITS_NAME_PROP = "_inherits"
 private const val FIELD_PREFIX = "fields."
 private const val MANY_2_ONE = "Many2one"
 private const val MANY_2_ONE_FIELD_DECL = FIELD_PREFIX + MANY_2_ONE
+private const val ONE_2_MANY = "One2many"
+private const val ONE_2_MANY_FIELD_DECL = FIELD_PREFIX + ONE_2_MANY
+private const val MANY_2_MANY = "Many2many"
+private const val MANY_2_MANY_FIELD_DECL = FIELD_PREFIX + MANY_2_MANY
 
 private const val DELEGATE = "delegate"
 private const val COMODEL_NAME = "comodel_name"
@@ -174,27 +178,23 @@ private fun getFields(lighterAST: LighterAST, fileContent: CharSequence, stmtLis
                 lighterAST.useSingleChild(callExpr, PyElementTypes.REFERENCE_EXPRESSION) { refExpr ->
                     val fieldsString = fileContent.buildString(refExpr)
 
-                    if (fieldsString == MANY_2_ONE_FIELD_DECL) {
-                        // Check for potential delegate field
-                        getMany2oneField(lighterAST, fileContent, assignmentStmt, callExpr)
-                    } else if (fieldsString.startsWith(FIELD_PREFIX)) {
-                        // Field declaration found
-                        getAnyField(lighterAST, fileContent, assignmentStmt)
-                    } else null
+                    when (fieldsString) {
+                        MANY_2_ONE_FIELD_DECL -> getRelationalField(lighterAST, fileContent, assignmentStmt, callExpr, MANY_2_ONE)
+                        ONE_2_MANY_FIELD_DECL -> getRelationalField(lighterAST, fileContent, assignmentStmt, callExpr, ONE_2_MANY)
+                        MANY_2_MANY_FIELD_DECL -> getRelationalField(lighterAST, fileContent, assignmentStmt, callExpr, MANY_2_MANY)
+                        else -> if (fieldsString.startsWith(FIELD_PREFIX)) {
+                            // Field declaration found
+                            getAnyField(lighterAST, fileContent, assignmentStmt)
+                        } else null
+                    }
                 }
             }
         }
 
-private fun getMany2oneField(lighterAST: LighterAST, fileContent: CharSequence, assignmentStmt: LighterASTNode, callExpr: LighterASTNode) =
+private fun getRelationalField(lighterAST: LighterAST, fileContent: CharSequence, assignmentStmt: LighterASTNode, callExpr: LighterASTNode, type: String) =
         lighterAST.useSingleChild(callExpr, PyElementTypes.ARGUMENT_LIST) { argumentList ->
             val keywordArgumentExpressions = lighterAST
                     .getChildrenOfType(argumentList, PyElementTypes.KEYWORD_ARGUMENT_EXPRESSION)
-
-            val isDelegateField = keywordArgumentExpressions.any { keywordArgExpr ->
-                DELEGATE == lighterAST.useSingleChild(keywordArgExpr, PyTokenTypes.IDENTIFIER) { identifier ->
-                    fileContent.buildString(identifier)
-                }
-            }
 
             val comodelKeywordArgExpr = keywordArgumentExpressions.firstOrNull { keywordArgExpr ->
                 COMODEL_NAME == lighterAST.useSingleChild(keywordArgExpr, PyTokenTypes.IDENTIFIER) { identifier ->
@@ -214,7 +214,21 @@ private fun getMany2oneField(lighterAST: LighterAST, fileContent: CharSequence, 
 
                 lighterAST.useSingleChild(assignmentStmt, PyElementTypes.TARGET_EXPRESSION) { targetExpr ->
                     val fieldName = fileContent.buildString(targetExpr)
-                    FieldInfo.Many2OneField(fieldName, targetExpr.startOffset, comodelName, isDelegateField)
+
+                    when (type) {
+                        ONE_2_MANY -> FieldInfo.One2ManyField(fieldName, targetExpr.startOffset, comodelName)
+                        MANY_2_MANY -> FieldInfo.Many2ManyField(fieldName, targetExpr.startOffset, comodelName)
+                        MANY_2_ONE -> {
+                            val isDelegateField = keywordArgumentExpressions.any { keywordArgExpr ->
+                                DELEGATE == lighterAST.useSingleChild(keywordArgExpr, PyTokenTypes.IDENTIFIER) { identifier ->
+                                    fileContent.buildString(identifier)
+                                }
+                            }
+
+                            FieldInfo.Many2OneField(fieldName, targetExpr.startOffset, comodelName, isDelegateField)
+                        }
+                        else -> throw IllegalStateException("Unknown relational field type: $type")
+                    }
                 }
             }
         }

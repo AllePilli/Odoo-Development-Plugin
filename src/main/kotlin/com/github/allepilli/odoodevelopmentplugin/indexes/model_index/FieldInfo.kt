@@ -6,7 +6,19 @@ sealed class FieldInfo(val name: String, val offset: Int, val type: String = EMP
         const val EMPTY_TYPE = "ET"
     }
 
-    class Many2OneField(name: String, offset: Int, val coModelName: String, val delegate: Boolean): FieldInfo(name, offset, TYPE) {
+    abstract class RelationalField(name: String, offset: Int, val coModelName: String, type: String): FieldInfo(name, offset, type) {
+        override fun equals(other: Any?): Boolean = super.equals(other)
+                && (other is RelationalField)
+                && coModelName == other.coModelName
+
+        override fun hashCode(): Int {
+            var result = super.hashCode()
+            result = 31 * result + coModelName.hashCode()
+            return result
+        }
+    }
+
+    class Many2OneField(name: String, offset: Int, coModelName: String, val delegate: Boolean): RelationalField(name, offset, coModelName, TYPE) {
         companion object {
             const val TYPE = "Many2One"
         }
@@ -15,14 +27,32 @@ sealed class FieldInfo(val name: String, val offset: Int, val type: String = EMP
         override fun equals(other: Any?): Boolean = super.equals(other)
                 && (other is Many2OneField)
                 && delegate == other.delegate
-                && coModelName == other.coModelName
 
         override fun hashCode(): Int {
             var result = super.hashCode()
-            result = 31 * result + coModelName.hashCode()
             result = 31 * result + delegate.hashCode()
             return result
         }
+    }
+
+    class One2ManyField(name: String, offset: Int, coModelName: String): RelationalField(name, offset, coModelName, TYPE) {
+        companion object {
+            const val TYPE = "One2Many"
+        }
+
+        override fun toString(): String = "One2ManyField(name='$name', offset=$offset, coModelName='$coModelName')"
+        override fun equals(other: Any?): Boolean = super.equals(other)
+                && (other is One2ManyField)
+    }
+
+    class Many2ManyField(name: String, offset: Int, coModelName: String): RelationalField(name, offset, coModelName, TYPE) {
+        companion object {
+            const val TYPE = "Many2Many"
+        }
+
+        override fun toString(): String = "Many2ManyField(name='$name', offset=$offset, coModelName='$coModelName')"
+        override fun equals(other: Any?): Boolean = super.equals(other)
+                && (other is Many2ManyField)
     }
 
     class AnyField(name: String, offset: Int): FieldInfo(name, offset, EMPTY_TYPE) {

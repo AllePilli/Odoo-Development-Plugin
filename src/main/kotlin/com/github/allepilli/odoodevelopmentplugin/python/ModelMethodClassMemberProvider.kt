@@ -49,7 +49,7 @@ class ModelMethodClassMemberProvider: PyClassMembersProviderBase() {
         val contextModule = context.origin?.virtualFile?.getContainingModule(project) ?: return mutableListOf()
         val model = Model(project, modelName, contextModule.name)
 
-        return model.methodElements
+        return model.methods
                 .map { PyCustomMember(it.name!!, it) }
                 .toMutableList()
     }

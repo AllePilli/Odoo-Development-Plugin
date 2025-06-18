@@ -33,10 +33,9 @@ class FunctionReference(element: PyStringLiteralExpression, rangeInElement: Text
 
         val model = Model(pyClass.project, modelName, moduleName)
 
-        return model.getMethodFunction(functionName)
-                ?.map(::PsiElementResolveResult)
-                ?.toTypedArray()
-                ?: emptyArray()
+        return model.getMethods(functionName)
+                .map(::PsiElementResolveResult)
+                .toTypedArray()
     }
 
     override fun getVariants(): Array<out Any?> {
@@ -49,7 +48,7 @@ class FunctionReference(element: PyStringLiteralExpression, rangeInElement: Text
                 ?: return emptyArray()
         val model = Model(element.project, modelName, moduleName)
 
-        return model.methodElements
+        return model.methods
                 .map { method ->
                     buildLookupElementWithIcon(method)
                             .withAutoCompletionPolicy(AutoCompletionPolicy.ALWAYS_AUTOCOMPLETE)

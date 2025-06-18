@@ -46,11 +46,14 @@ data class OdooModelNameIndexItem(
                     IndexUtil.writeString(this, fieldInfo.type)
 
                     when (fieldInfo) {
+                        is FieldInfo.One2ManyField -> IndexUtil.writeString(this, fieldInfo.coModelName)
+                        is FieldInfo.Many2ManyField -> IndexUtil.writeString(this, fieldInfo.coModelName)
                         is FieldInfo.Many2OneField -> {
                             IndexUtil.writeString(this, fieldInfo.coModelName)
                             IndexUtil.writeBoolean(this, fieldInfo.delegate)
                         }
                         is FieldInfo.AnyField -> {}
+                        else -> throw IllegalStateException("Unknown fieldInfo type: $fieldInfo")
                     }
                 }
 
@@ -60,6 +63,14 @@ data class OdooModelNameIndexItem(
             val type = IndexUtil.readString(this)
 
             when (type) {
+                FieldInfo.One2ManyField.TYPE -> {
+                    val coModelName = IndexUtil.readString(this)
+                    FieldInfo.One2ManyField(name, offset, coModelName)
+                }
+                FieldInfo.Many2ManyField.TYPE -> {
+                    val coModelName = IndexUtil.readString(this)
+                    FieldInfo.Many2ManyField(name, offset, coModelName)
+                }
                 FieldInfo.Many2OneField.TYPE -> {
                     val coModelName = IndexUtil.readString(this)
                     val delegate = IndexUtil.readBoolean(this)
