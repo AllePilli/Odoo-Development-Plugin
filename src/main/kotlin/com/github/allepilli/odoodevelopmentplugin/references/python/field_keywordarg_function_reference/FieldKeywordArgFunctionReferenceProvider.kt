@@ -1,11 +1,10 @@
 package com.github.allepilli.odoodevelopmentplugin.references.python.field_keywordarg_function_reference
 
 import com.github.allepilli.odoodevelopmentplugin.references.FunctionReference
+import com.github.allepilli.odoodevelopmentplugin.references.python.PyStringLiteralReferenceProvider
 import com.intellij.openapi.util.Key
-import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReference
-import com.intellij.psi.PsiReferenceProvider
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.util.siblings
 import com.intellij.util.ProcessingContext
@@ -48,20 +47,19 @@ private val fieldTypes = setOf(
 
 private val IS_FIELD_ARG_LIST_KEY = Key.create<Boolean>("odoo_development_plugin_is_field_arg_list_key")
 
-class FieldKeywordArgFunctionReferenceProvider: PsiReferenceProvider() {
-    override fun getReferencesByElement(psiElement: PsiElement, context: ProcessingContext): Array<PsiReference> {
-        if (!isKeywordArgInFieldDefinition(psiElement)) return emptyArray()
+class FieldKeywordArgFunctionReferenceProvider: PyStringLiteralReferenceProvider() {
+    override fun getReferences(element: PyStringLiteralExpression, context: ProcessingContext): List<PsiReference> {
+        if (!isKeywordArgInFieldDefinition(element)) return emptyList()
 
-        val keywordIdentifier = psiElement.siblings(forward = false, withSelf = false)
+        val keywordIdentifier = element.siblings(forward = false, withSelf = false)
                 .drop(1) // drop the '=' element
                 .firstOrNull()
                 ?.takeIf { it.elementType == PyTokenTypes.IDENTIFIER }
-                ?: return emptyArray()
+                ?: return emptyList()
 
-        if (keywordIdentifier.text !in functionReferenceKeywords) return emptyArray()
+        if (keywordIdentifier.text !in functionReferenceKeywords) return emptyList()
 
-        val functionName = PyStringLiteralUtil.getStringValue(psiElement.text)
-        return arrayOf(FunctionReference(psiElement as PyStringLiteralExpression, TextRange.allOf(functionName).shiftRight(1)))
+        return listOf(FunctionReference(element, PyStringLiteralUtil.getContentRange(element.text)))
     }
 
     private fun isKeywordArgInFieldDefinition(psiElement: PsiElement): Boolean {

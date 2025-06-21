@@ -1,16 +1,13 @@
 package com.github.allepilli.odoodevelopmentplugin.references.python.model_inherit_values
 
 import com.github.allepilli.odoodevelopmentplugin.references.ModelNameReference
-import com.intellij.openapi.util.TextRange
-import com.intellij.psi.PsiElement
+import com.github.allepilli.odoodevelopmentplugin.references.python.PyStringLiteralReferenceProvider
 import com.intellij.psi.PsiReference
-import com.intellij.psi.PsiReferenceProvider
 import com.intellij.util.ProcessingContext
 import com.jetbrains.python.psi.PyStringLiteralExpression
+import com.jetbrains.python.psi.PyStringLiteralUtil
 
-class ModelInheritValuesReferenceProvider: PsiReferenceProvider() {
-    override fun getReferencesByElement(psiElement: PsiElement, context: ProcessingContext): Array<PsiReference> =
-            if (psiElement is PyStringLiteralExpression) arrayOf(
-                    ModelNameReference(psiElement, TextRange.allOf(psiElement.stringValue).shiftRight(1), canReferenceContainingClass = false)
-            ) else emptyArray()
+class ModelInheritValuesReferenceProvider : PyStringLiteralReferenceProvider() {
+    override fun getReferences(element: PyStringLiteralExpression, context: ProcessingContext): List<PsiReference> =
+            listOf(ModelNameReference(element, PyStringLiteralUtil.getContentRange(element.text), canReferenceContainingClass = false))
 }
