@@ -22,7 +22,7 @@ import java.io.File
 
 class ModuleReference(psiElement: PsiElement, rangeInElement: TextRange): PsiReferenceBase<PsiElement>(psiElement, rangeInElement) {
     override fun resolve(): PsiElement? {
-        val moduleName = PyStringLiteralUtil.getStringValue(element.text)
+        val moduleName = value
         val virtualFileManager = VirtualFileManager.getInstance()
         var module: VirtualFile? = null
 
@@ -43,7 +43,7 @@ class ModuleReference(psiElement: PsiElement, rangeInElement: TextRange): PsiRef
         val virtualFileManager = VirtualFileManager.getInstance()
 
         // Can't use PsiElement.containingModule because the element in this function is some kind of temporary element with minimal context.
-        // to get the actual containing module we need to go through the document
+        // to get the actual containing module, we need to go through the document
         val moduleName = if (ApplicationManager.getApplication().isUnitTestMode) {
             FileDocumentManager.getInstance().getFile(element.containingFile.fileDocument)
                     ?.originalFile()
