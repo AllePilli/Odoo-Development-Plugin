@@ -1,17 +1,17 @@
 package com.github.allepilli.odoodevelopmentplugin.references.python.field_keywordarg_function_reference
 
-import com.intellij.patterns.PlatformPatterns
-import com.intellij.psi.PsiReferenceContributor
-import com.intellij.psi.PsiReferenceRegistrar
+import com.github.allepilli.odoodevelopmentplugin.patterns.dsl.psiElement
+import com.github.allepilli.odoodevelopmentplugin.references.python.OdooReferenceContributor
+import com.intellij.patterns.ElementPattern
+import com.intellij.psi.PsiElement
 import com.jetbrains.python.psi.PyArgumentList
 import com.jetbrains.python.psi.PyCallExpression
 import com.jetbrains.python.psi.PyKeywordArgument
 import com.jetbrains.python.psi.PyStringLiteralExpression
 
-private val pattern = PlatformPatterns.psiElement(PyStringLiteralExpression::class.java)
-        .withParents(PyKeywordArgument::class.java, PyArgumentList::class.java, PyCallExpression::class.java)
-
-class FieldKeywordArgFunctionReferenceContributor: PsiReferenceContributor() {
-    override fun registerReferenceProviders(registrar: PsiReferenceRegistrar) =
-            registrar.registerReferenceProvider(pattern, FieldKeywordArgFunctionReferenceProvider())
+class FieldKeywordArgFunctionReferenceContributor: OdooReferenceContributor(::FieldKeywordArgFunctionReferenceProvider) {
+    override val pattern: ElementPattern<out PsiElement>
+        get() = psiElement<PyStringLiteralExpression> {
+            parents(PyKeywordArgument::class, PyArgumentList::class, PyCallExpression::class)
+        }
 }
