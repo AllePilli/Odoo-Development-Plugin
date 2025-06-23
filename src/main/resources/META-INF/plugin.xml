@@ -48,8 +48,8 @@
         <psi.referenceContributor id="com.github.allepilli.odoodevelopmentplugin.references.python.model_inherit_values.ModelInheritValuesContributor"
                                   implementation="com.github.allepilli.odoodevelopmentplugin.references.python.model_inherit_values.ModelInheritValuesContributor"
                                   language="Python"/>
-        <psi.referenceContributor id="com.github.allepilli.odoodevelopmentplugin.references.python.model_in_env.ModelInEnvValuesContributor"
-                                  implementation="com.github.allepilli.odoodevelopmentplugin.references.python.model_in_env.ModelInEnvValuesContributor"
+        <psi.referenceContributor id="com.github.allepilli.odoodevelopmentplugin.references.python.model_in_env.ModelInEnvContributor"
+                                  implementation="com.github.allepilli.odoodevelopmentplugin.references.python.model_in_env.ModelInEnvContributor"
                                   language="Python"/>
         <psi.referenceContributor id="com.github.allepilli.odoodevelopmentplugin.references.python.model_in_comodel_args.ModelInComodelArgsContributor"
                                   implementation="com.github.allepilli.odoodevelopmentplugin.references.python.model_in_comodel_args.ModelInComodelArgsContributor"

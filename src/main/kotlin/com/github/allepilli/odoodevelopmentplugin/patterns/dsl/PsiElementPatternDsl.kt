@@ -51,13 +51,18 @@ class PsiElementPatternDsl<T: PsiElement>(var pattern: PsiElementPattern.Capture
         return pattern
     }
 
-    fun <ParentType: PsiElement> parents(vararg types: KClass<ParentType>) {
+    fun parents(vararg types: KClass<out PsiElement>) {
         pattern = pattern.withParents(*types.map { it.java }.toTypedArray())
     }
 
     inline fun <reified ParentType: PsiElement> parent(init: PsiElementPatternDsl<ParentType>.() -> Unit = {}) {
         val parentPattern = psiElement<ParentType>(init)
         pattern = pattern.withParent(parentPattern)
+    }
+
+    inline fun <reified SuperParentType: PsiElement> superParent(level: Int, init: PsiElementPatternDsl<SuperParentType>.() -> Unit = {}) {
+        val superParentPattern = psiElement<SuperParentType>(init)
+        pattern = pattern.withSuperParent(level, pattern)
     }
 
     inline fun <reified ChildType: PsiElement> child(init: PsiElementPatternDsl<ChildType>.() -> Unit = {}) {

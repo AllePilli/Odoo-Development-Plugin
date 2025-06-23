@@ -1,22 +1,28 @@
 package com.github.allepilli.odoodevelopmentplugin.references.python.manifest_module_dependency
 
-import com.github.allepilli.odoodevelopmentplugin.withFileName
-import com.intellij.patterns.PlatformPatterns
-import com.intellij.psi.PsiReferenceContributor
-import com.intellij.psi.PsiReferenceRegistrar
-import com.jetbrains.python.PyElementTypes
+import com.github.allepilli.odoodevelopmentplugin.Constants
+import com.github.allepilli.odoodevelopmentplugin.patterns.dsl.psiElement
+import com.github.allepilli.odoodevelopmentplugin.references.python.OdooReferenceContributor
+import com.intellij.patterns.ElementPattern
+import com.intellij.psi.PsiElement
+import com.jetbrains.python.psi.PyFile
+import com.jetbrains.python.psi.PyKeyValueExpression
+import com.jetbrains.python.psi.PyListLiteralExpression
+import com.jetbrains.python.psi.PyStringLiteralExpression
 
-private val pattern = PlatformPatterns.psiElement(PyElementTypes.STRING_LITERAL_EXPRESSION)
-                .inFile(PlatformPatterns.psiFile().withFileName("__manifest__.py"))
-                .withParent(
-                        PlatformPatterns.psiElement(PyElementTypes.LIST_LITERAL_EXPRESSION)
-                                .withParent(
-                                        PlatformPatterns.psiElement(PyElementTypes.KEY_VALUE_EXPRESSION)
-                                                .withChild(PlatformPatterns.psiElement(PyElementTypes.STRING_LITERAL_EXPRESSION).withText("'depends'"))
-                                )
-                )
+class ManifestModuleDependencyContributor: OdooReferenceContributor(::ManifestModuleDependencyReferenceProvider) {
+    override val pattern: ElementPattern<out PsiElement>
+        get() = psiElement<PyStringLiteralExpression> {
+            file<PyFile> {
+                name = Constants.MANIFEST_FILE_WITH_EXT
+            }
 
-class ManifestModuleDependencyContributor: PsiReferenceContributor() {
-    override fun registerReferenceProviders(registrar: PsiReferenceRegistrar) =
-            registrar.registerReferenceProvider(pattern, ManifestModuleDependencyReferenceProvider())
+            parent<PyListLiteralExpression> {
+                parent<PyKeyValueExpression> {
+                    child<PyStringLiteralExpression> {
+                        text = "'depends'"
+                    }
+                }
+            }
+        }
 }

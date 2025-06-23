@@ -1,5 +1,6 @@
 package com.github.allepilli.odoodevelopmentplugin.patterns.dsl
 
+import com.github.allepilli.odoodevelopmentplugin.withFileName
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.patterns.ElementPattern
@@ -11,6 +12,7 @@ import com.intellij.psi.PsiFile
 class PsiFilePatternDsl<T: PsiFile>(var pattern: PsiFilePattern.Capture<T>) {
     var parentDirectoryName: String? = null
     var fileType: FileType? = null
+    var name: String? = null
 
     /**
      * DO NOT CALL
@@ -20,6 +22,7 @@ class PsiFilePatternDsl<T: PsiFile>(var pattern: PsiFilePattern.Capture<T>) {
                 StandardPatterns.string().withLength(parentDirectoryName!!.length).contains(parentDirectoryName!!)
         )
         if (fileType != null) pattern = pattern.withFileType(StandardPatterns.instanceOf(fileType!!.javaClass))
+        if (name != null) pattern = pattern.withFileName(name!!)
 
         return pattern
     }
