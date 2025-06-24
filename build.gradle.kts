@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "com.github.AllePilli"
-version = "0.2.14"
+version = "0.2.15"
 
 repositories {
     mavenCentral()

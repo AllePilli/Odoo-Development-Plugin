@@ -19,7 +19,7 @@ class SimpleFieldReferenceConverter: CustomReferenceConverter<String> {
         if (genericDomValue is GenericAttributeValue<String>) {
             val value = genericDomValue.xmlAttributeValue ?: return emptyArray()
 
-            val virtualFile = value.containingFile.virtualFile
+            val virtualFile = context?.file?.originalFile?.virtualFile ?: return emptyArray()
             val odooVersionManager = value.project.service<OdooVersionManager>()
             val reference = if (odooVersionManager.versionAtLeast(virtualFile, VersionConstants.L18N_FIELD_NAMES)) {
                 // an '@' in the field name indicates that it is a translated field
