@@ -1,9 +1,11 @@
+import org.jetbrains.changelog.Changelog
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 
 plugins {
     id("java")
     id("org.jetbrains.kotlin.jvm") version "2.1.20"
     id("org.jetbrains.intellij.platform") version "2.6.0"
+    id("org.jetbrains.changelog") version "2.2.1"
 }
 
 group = "com.github.AllePilli"
@@ -53,5 +55,21 @@ intellijPlatform {
 
     publishing {
         token = System.getenv("PUBLISH_TOKEN")
+    }
+}
+
+var showCompleteChangelog = false
+var changelogOutputType = Changelog.OutputType.HTML
+
+tasks {
+    patchPluginXml {
+        changeNotes.set(provider {
+            if (showCompleteChangelog) changelog.render(changelogOutputType)
+            else changelog.renderItem(
+                    changelog.get(version as String)
+                            .withEmptySections(false),
+                    changelogOutputType
+            )
+        })
     }
 }

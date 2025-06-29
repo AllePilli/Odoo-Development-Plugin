@@ -20,12 +20,6 @@
     </description>
 
     <change-notes>
-        <![CDATA[
-            Version 2.6:
-— Add run configurations for odoo test files.
-            Version 2.9:
-— Plugin compatible with PyCharm 2025.x
-        ]]>
     </change-notes>
 
     <!-- Product and plugin compatibility requirements.
