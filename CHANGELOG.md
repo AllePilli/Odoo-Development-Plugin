@@ -14,14 +14,18 @@
 
 ### Security
 
-## 0.2.9
-
-### Changed
-
-— Plugin compatible with PyCharm 2025.x
-
-## 0.2.6
+## 0.2.16 - 2025-06-30
 
 ### Added
 
-— Run configurations for odoo test files.
+- Reference model methods from the 'name' attribute in `<function>` tags inside Odoo Data Files
+
+## 0.2.15
+
+### Changed
+
+- Use new pattern dsl
+
+### Fixed
+
+- NullpointerException on field name completion in data files

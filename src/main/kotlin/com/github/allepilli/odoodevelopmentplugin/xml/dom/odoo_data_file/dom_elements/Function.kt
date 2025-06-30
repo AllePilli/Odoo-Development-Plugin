@@ -1,5 +1,6 @@
 package com.github.allepilli.odoodevelopmentplugin.xml.dom.odoo_data_file.dom_elements
 
+import com.github.allepilli.odoodevelopmentplugin.xml.dom.odoo_data_file.converters.ModelMethodReferenceConverter
 import com.github.allepilli.odoodevelopmentplugin.xml.dom.odoo_data_file.converters.ModelReferenceConverter
 import com.intellij.util.xml.*
 
@@ -10,6 +11,7 @@ interface Function: Env {
     fun getModel(): GenericAttributeValue<String>
 
     @Required
+    @Referencing(ModelMethodReferenceConverter::class)
     @Attribute("name")
     fun getName(): GenericAttributeValue<String>
 }
