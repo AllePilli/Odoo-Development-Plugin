@@ -11,7 +11,7 @@ import com.intellij.psi.xml.XmlAttributeValue
 import com.jetbrains.python.PythonLanguage
 
 class ModelNameReference(psiElement: PsiElement, rangeInElement: TextRange, val canReferenceContainingClass: Boolean = true)
-    : PsiPolyVariantReferenceBase<PsiElement>(psiElement, rangeInElement), PsiPolyVariantReference {
+    : PsiPolyVariantReferenceBase<PsiElement>(psiElement, rangeInElement) {
         constructor(xmlAttributeValue: XmlAttributeValue)
                 : this(xmlAttributeValue, TextRange.allOf(xmlAttributeValue.value).shiftRight(1))
 

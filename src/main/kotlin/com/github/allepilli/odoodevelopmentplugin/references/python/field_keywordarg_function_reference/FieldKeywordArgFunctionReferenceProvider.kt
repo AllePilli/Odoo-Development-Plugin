@@ -1,6 +1,6 @@
 package com.github.allepilli.odoodevelopmentplugin.references.python.field_keywordarg_function_reference
 
-import com.github.allepilli.odoodevelopmentplugin.references.FunctionReference
+import com.github.allepilli.odoodevelopmentplugin.references.ModelMethodReference
 import com.github.allepilli.odoodevelopmentplugin.references.python.PyStringLiteralReferenceProvider
 import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiElement
@@ -59,7 +59,7 @@ class FieldKeywordArgFunctionReferenceProvider: PyStringLiteralReferenceProvider
 
         if (keywordIdentifier.text !in functionReferenceKeywords) return emptyList()
 
-        return listOf(FunctionReference(element, PyStringLiteralUtil.getContentRange(element.text)))
+        return listOf(ModelMethodReference(element, PyStringLiteralUtil.getContentRange(element.text)))
     }
 
     private fun isKeywordArgInFieldDefinition(psiElement: PsiElement): Boolean {
