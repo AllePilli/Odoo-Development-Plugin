@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "com.github.AllePilli"
-version = "0.2.16"
+version = "0.2.17"
 
 repositories {
     mavenCentral()
@@ -25,7 +25,7 @@ repositories {
 // Read more version 2.x: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin.html
 dependencies {
     intellijPlatform {
-        pycharmCommunity("2025.1.1.1")
+        pycharmCommunity("2025.2")
         jetbrainsRuntime()
 
         bundledPlugin("PythonCore")
@@ -42,8 +42,8 @@ dependencies {
 intellijPlatform {
     pluginConfiguration {
         ideaVersion {
-            sinceBuild = "251"
-            untilBuild = "251.*"
+            sinceBuild = "252"
+            untilBuild = "252.*"
         }
     }
 

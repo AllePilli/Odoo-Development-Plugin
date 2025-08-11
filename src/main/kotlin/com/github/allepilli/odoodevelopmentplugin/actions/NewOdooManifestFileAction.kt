@@ -7,6 +7,7 @@ import com.intellij.ide.fileTemplates.FileTemplate
 import com.intellij.ide.fileTemplates.FileTemplateManager
 import com.intellij.ide.fileTemplates.FileTemplateUtil
 import com.intellij.ide.fileTemplates.actions.CreateFromTemplateActionBase
+import com.intellij.ide.fileTemplates.actions.CreateFromTemplateManager
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.application.WriteActionAware
@@ -78,7 +79,7 @@ class NewOdooManifestFileAction: AnAction(), WriteActionAware {
 
         return psiFile.virtualFile?.let { virtualFile ->
             if (openFile) {
-                if (template.isLiveTemplateEnabled) CreateFromTemplateActionBase.startLiveTemplate(psiFile, liveTemplateDefaultValues)
+                if (template.isLiveTemplateEnabled) CreateFromTemplateManager.startLiveTemplate(psiFile, liveTemplateDefaultValues)
                 else FileEditorManager.getInstance(project).openFile(virtualFile, true)
             }
 
