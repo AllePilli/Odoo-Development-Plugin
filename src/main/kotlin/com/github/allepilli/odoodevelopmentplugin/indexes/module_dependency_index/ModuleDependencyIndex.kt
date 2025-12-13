@@ -31,7 +31,7 @@ class ModuleDependencyIndex: FileBasedIndexExtension<String, Set<String>>() {
                 file.nameWithoutExtension == Constants.MANIFEST_FILE_NAME && file.parent.isOdooModuleDirectory()
     }
     override fun dependsOnFileContent(): Boolean = true
-    override fun getVersion(): Int = 1
+    override fun getVersion(): Int = 2
     override fun getIndexer(): DataIndexer<String, Set<String>, FileContent> = moduleDependencyDataIndexer
 }
 

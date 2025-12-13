@@ -1,6 +1,8 @@
 package com.github.allepilli.odoodevelopmentplugin.python
 
 import com.github.allepilli.odoodevelopmentplugin.indexes.module_dependency_index.ModuleDependencyIndexUtil
+import com.intellij.openapi.vfs.findDirectory
+import com.intellij.openapi.vfs.findFileOrDirectory
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.QualifiedName
 import com.jetbrains.python.psi.impl.PyImportResolver
@@ -24,12 +26,18 @@ class OdooAddonsImportResolver: PyImportResolver {
         val module = ModuleDependencyIndexUtil.findModuleByName(context.project, moduleName)
                 ?: return null
 
-        val relativePath = qualifiedModuleName
-                .removeHead(1)
-                .components
-                .joinToString(separator = File.separator, postfix = ".py")
+        return if (name.componentCount > 3) {
+            val relativePath = qualifiedModuleName
+                    .removeHead(1)
+                    .components
+                    .joinToString(separator = "/")
 
-        val file = module.findFileByRelativePath(relativePath) ?: return null
-        return context.psiManager.findFile(file)
+            module.findFileByRelativePath("$relativePath.py")
+                    ?.let { context.psiManager.findFile(it) }
+                    ?: module.findDirectory(relativePath)
+                            ?.let { context.psiManager.findDirectory(it) }
+        } else {
+            context.psiManager.findDirectory(module)
+        }
     }
 }

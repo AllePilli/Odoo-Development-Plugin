@@ -82,3 +82,6 @@ fun PySequenceExpression.insertElement(toInsert: PyExpression, afterThis: PyExpr
 
     return element
 }
+
+fun String.dropPostfix(postfix: String): String =
+        if (this.endsWith(postfix)) this.dropLast(postfix.length) else this

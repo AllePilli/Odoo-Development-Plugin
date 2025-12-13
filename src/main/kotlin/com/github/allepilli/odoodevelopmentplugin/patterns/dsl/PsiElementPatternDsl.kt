@@ -62,7 +62,7 @@ class PsiElementPatternDsl<T: PsiElement>(var pattern: PsiElementPattern.Capture
 
     inline fun <reified SuperParentType: PsiElement> superParent(level: Int, init: PsiElementPatternDsl<SuperParentType>.() -> Unit = {}) {
         val superParentPattern = psiElement<SuperParentType>(init)
-        pattern = pattern.withSuperParent(level, pattern)
+        pattern = pattern.withSuperParent(level, superParentPattern)
     }
 
     inline fun <reified ChildType: PsiElement> child(init: PsiElementPatternDsl<ChildType>.() -> Unit = {}) {

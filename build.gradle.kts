@@ -3,8 +3,8 @@ import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 
 plugins {
     id("java")
-    id("org.jetbrains.kotlin.jvm") version "2.1.20"
-    id("org.jetbrains.intellij.platform") version "2.6.0"
+    id("org.jetbrains.kotlin.jvm") version "2.2.20"
+    id("org.jetbrains.intellij.platform") version "2.10.5"
     id("org.jetbrains.changelog") version "2.2.1"
 }
 
@@ -25,13 +25,12 @@ repositories {
 // Read more version 2.x: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin.html
 dependencies {
     intellijPlatform {
-        pycharmCommunity("2025.2")
-        jetbrainsRuntime()
+        pycharm("2025.3")
 
         bundledPlugin("PythonCore")
         bundledPlugin("com.intellij.dev")
         bundledPlugin("Git4Idea")
-        plugin("com.jetbrains.hackathon.indices.viewer", "1.30")
+        plugin("com.jetbrains.hackathon.indices.viewer", "1.31")
         testFramework(TestFrameworkType.Platform)
     }
 
@@ -42,8 +41,8 @@ dependencies {
 intellijPlatform {
     pluginConfiguration {
         ideaVersion {
-            sinceBuild = "252"
-            untilBuild = "252.*"
+            sinceBuild = "253"
+            untilBuild = "253.*"
         }
     }
 
@@ -63,13 +62,22 @@ var changelogOutputType = Changelog.OutputType.HTML
 
 tasks {
     patchPluginXml {
-        changeNotes.set(provider {
-            if (showCompleteChangelog) changelog.render(changelogOutputType)
-            else changelog.renderItem(
-                    changelog.get(version as String)
-                            .withEmptySections(false),
-                    changelogOutputType
-            )
-        })
+        changeNotes.set(
+            provider {
+                runCatching {
+                    if (showCompleteChangelog) changelog.render(changelogOutputType)
+                    else changelog.renderItem(
+                            changelog.get(version as String)
+                                    .withEmptySections(false),
+                            changelogOutputType
+                    )
+                }.getOrElse {
+                    changelog.renderItem(
+                            changelog.getLatest().withEmptySections(false),
+                            changelogOutputType,
+                    )
+                }
+            }
+        )
     }
 }

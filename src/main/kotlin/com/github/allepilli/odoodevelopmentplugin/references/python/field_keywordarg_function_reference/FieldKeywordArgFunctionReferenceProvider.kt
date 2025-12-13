@@ -80,13 +80,15 @@ class FieldKeywordArgFunctionReferenceProvider: PyStringLiteralReferenceProvider
                 ?: return false
 
         val typeEvalContext = TypeEvalContext.codeCompletion(psiElement.project, psiElement.containingFile)
-
-        val isKeywordArgInField = "odoo.fields.Field" == fieldClass.getType(typeEvalContext)
+        val topAncestorQName = fieldClass.getType(typeEvalContext)
                 ?.getAncestorTypes(typeEvalContext)
                 ?.filterIsInstance<PyClassType>()
                 ?.dropLast(1) // Drop PyClassType: object
                 ?.lastOrNull()
                 ?.classQName
+                ?: return false
+
+        val isKeywordArgInField = "fields.Field" == topAncestorQName
 
         argumentList.putUserData(IS_FIELD_ARG_LIST_KEY, isKeywordArgInField)
 

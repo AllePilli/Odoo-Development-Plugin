@@ -1,7 +1,7 @@
 package com.github.allepilli.odoodevelopmentplugin.inspections
 
-import ai.grazie.utils.dropPostfix
 import com.github.allepilli.odoodevelopmentplugin.bundles.StringsBundle
+import com.github.allepilli.odoodevelopmentplugin.dropPostfix
 import com.jetbrains.python.inspections.PyInspection
 
 abstract class OdooPyInspection: PyInspection() {
